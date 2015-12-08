@@ -1,0 +1,162 @@
+#!/bin/bash
+
+#####Initial Goal: Assume your information is correct and just require a file with below structure
+
+#		ObscureName,/full/path/to/preprocessedData
+#
+
+####Things to place in scriptsDir
+#A mask for the template, or C1 for the template
+#all needed scripts
+#all raw warped output from 3dTproject for comparision (name like this: obscureName.RAW.REST.nii.gz)
+#all FD measures
+#/data/elliottml/rest10M/templates/Dosenbach_Science_160ROIs_Center
+#dataList_RAW.txt
+#FDlist, FD_both_cens, put file in for each subject with format FD.obscureName.1D
+#meanFDlist (obscureName,meanFD), this is for Raw or uncensored
+#${scriptsDir}/run_maskAves2QCRSFC.R
+#${scriptsDir}/run_maskAves2carpet.R
+#getSeedZmaps.R
+#${scriptsDir}/splitHighLowMotionSubs.R
+
+dataTable=$1 # all of the processed functional datasets that you want to make plots (1 will be output for QC-rsfsc plot along with 1 for each subject for their carpetPlot)
+outWD=$2 #Where you want all plots to be placed, directory will be made if it doesnt already exist
+prefix=$3 #name to be appended to all files
+censor=$4 #T or F, if T then you need 4 columns in dataTable. Column 3=FD for entire rest, column 4 =mean FD. If F then I use my default files
+tmpFiles=$5
+
+ncolData=$(head -1 $dataTable | sed 's/[^,]//g' | wc -c)
+if [[ $# < 5 ]];then
+	echo "
+	Not enough arguments passed need at least
+	1)dataTable    ###Format subjectName,/path/to/subject/data or subjectName,/path/to/subject/data,/path/to/FDfile,meanFD
+	2)outWD
+	3)prefix
+	4)censor
+	5)tmpFiles
+	"
+elif [[ $censor == T && $ncolData -lt 3 ]];then
+	echo "If you have data that is censored you need 3 columns in your data table file, you only have $ncolData"
+	echo "
+	incorrect arguments passed need at least
+	1)dataTable    #Format subjectFirstName_subjectLastName,/path/to/subject/data or subjectName,/path/to/subject/data,/path/to/FDfile
+	2)outWD
+	3)prefix
+	4)censor
+	5)tmpFiles
+	"
+else
+	scriptsDir=/x/wmn18/elliottml/motionComparisons/
+	mkdir -p $outWD/$prefix
+	cd $outWD/$prefix
+	mkdir tmp
+	mask="${scriptsDir}/mask.1_brain_combined_ws_td_dupn7template_MNI_restVox.nii"
+	for sub in $(cat $dataTable | cut -d "," -f1);do
+		echo "extracting ROIs for $sub"
+		data=$(grep $sub $dataTable | cut -d "," -f2)
+		rawData=$(echo "$scriptsDir/$sub.RAW.REST.nii.gz")
+		for i in $(cat ${scriptsDir}/Dosenbach_Science_160ROIs_Center);do 
+			cord=$(echo $i | sed 's/,/ /g')
+			line=$(3dmaskave -nball ${cord} 8 -mask $mask -q $data | tr '\n' ' ')
+			echo $line  >> tmp/tmp_${sub}_${prefix}_maskAve
+			rawLine=$(3dmaskave -nball ${cord} 8 -mask $mask -q $rawData | tr '\n' ' ')
+			echo $rawLine  >> tmp/tmp_${sub}_RAW_${prefix}_maskAve
+		done
+	done
+	rawDataList=$(echo ${scriptsDir}/dataList_RAW.txt)
+	ls $outWD/$prefix/tmp/* > maskAveList.txt
+	cd $outWD/$prefix
+		if [[ $censor == F ]];then
+			for i in $(cat $dataTable | cut -d "," -f2);do
+				sub=$(grep $i $dataTable | cut -d "," -f1)
+				grep ${sub}_${prefix}_maskAve maskAveList.txt >> maskAveListOrdered.txt
+				ls $scriptsDir/FD.$sub.1D >> FD_list.txt
+				grep ${sub}_RAW_${prefix}_maskAve maskAveList.txt >> maskAveListOrdered_RAW.txt
+				grep $sub ${scriptsDir}/meanFD_list.txt | cut -d "," -f2 >> meanFD_list.txt
+			done
+			echo "call Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered.txt FD_list.txt ${outWD}/carpet_${prefix} ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered.txt FD_list.txt ${outWD}/${prefix}/carpet_${prefix} ${scriptsDir}
+			echo "call Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered.txt meanFD_list.txt ${outWD}/QC_RSFC_${prefix}.png ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered.txt meanFD_list.txt ${outWD}/${prefix}/QC_RSFC_${prefix}.png ${scriptsDir}
+			echo "call Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered_RAW.txt FD_RAW_list.txt ${outWD}/carpet_RAW_${prefix} ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered_RAW.txt FD_list.txt ${outWD}/${prefix}/carpet_RAW_${prefix} ${scriptsDir}
+			echo "call Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered_RAW.txt meanFD_RAW_list.txt ${outWD}/QC_RSFC_RAW_${prefix}.png ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered_RAW.txt meanFD_list.txt ${outWD}/${prefix}/QC_RSFC_RAW_${prefix}.png ${scriptsDir}
+		elif [[ $censor == T ]];then
+			for i in $(cat $dataTable | cut -d "," -f2);do
+				sub=$(grep $i $dataTable | cut -d "," -f1)
+				FD=$(grep $i $dataTable | cut -d "," -f3)
+				echo $FD >> FDCens_list.txt
+				awk '{s+=$1}END{print s/NR}' RS="\n" $FD > tmp/meanFD_$sub.txt
+				less $outWD/$prefix/tmp/meanFD_$sub.txt >> meanFDCens_list.txt
+				grep ${sub}_${prefix}_maskAve maskAveList.txt >> maskAveListOrdered.txt
+				grep ${sub}_RAW_${prefix}_maskAve maskAveList.txt >> maskAveListOrdered_RAW.txt
+				ls $scriptsDir/FD.$sub.1D >> FD_list.txt
+				grep $sub ${scriptsDir}/meanFD_list.txt | cut -d "," -f2 >> meanFD_list.txt
+			done
+			echo "call Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered.txt FD_list.txt ${outWD}/carpet_${prefix} ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered.txt FDCens_list.txt ${outWD}/${prefix}/carpet_${prefix} ${scriptsDir}
+			echo "call Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered.txt meanFD_list.txt ${outWD}/QC_RSFC_${prefix}.png ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered.txt meanFDCens_list.txt ${outWD}/${prefix}/QC_RSFC_${prefix}.png ${scriptsDir}
+			echo "call Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered_RAW.txt FD_RAW_list.txt ${outWD}/carpet_RAW_${prefix} ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2carpet.R maskAveListOrdered_RAW.txt FD_list.txt ${outWD}/${prefix}/carpet_RAW_${prefix} ${scriptsDir}
+			echo "call Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered_RAW.txt meanFD_list.txt ${outWD}/QC_RSFC_RAW_${prefix}.png ${scriptsDir}"
+			Rscript ${scriptsDir}/run_maskAves2QCRSFC.R maskAveListOrdered_RAW.txt meanFD_list.txt ${outWD}/${prefix}/QC_RSFC_RAW_${prefix}.png ${scriptsDir}			
+
+		else
+			echo "Bad input to censor argument, need to rerun with either T or F"
+			
+		fi
+	if [[ $tmpFiles == F ]];then
+		rm -r tmp
+		rm tmp*
+	fi
+	###Add in highVlow comparison. Then maybe Phillip's
+	for i in $(cat $dataTable | cut -d "," -f2);do
+		sub=$(grep $i $dataTable | cut -d "," -f1)
+		echo "making Connectiviy map for $sub"
+		cd ${outWD}/$prefix
+		3dmaskave -dball 2 51 27 6 -mask $mask -q $i | tr '\n' ' ' > tmp/$sub.$prefix.PCCseedData.1D
+		3dDeconvolve -input $i -polort -1 -num_stimts 1 -stim_file 1 tmp/$sub.$prefix.PCCseedData.1D -stim_label 1 $sub.$prefix.PCC -tout -rout -bucket tmp/$sub.$prefix.PCC.Decon.nii.gz
+		3dcalc -a tmp/$sub.$prefix.PCC.Decon.nii.gz'[4]' -b tmp/$sub.$prefix.PCC.Decon.nii.gz'[2]' -expr 'ispositive(b)*sqrt(a)-isnegative(b)*sqrt(a)' -prefix tmp/$sub.$prefix.PCC.R.nii
+		3dcalc -a tmp/$sub.$prefix.PCC.R.nii -expr 'log((1+a)/(1-a))/2' -prefix tmp/$sub.$prefix.Z.nii #put z-scores in 3dttest++
+	done
+	paste -d "," <(cat $dataTable | cut -d "," -f2) <(cat meanFD_list.txt) > tmp/functionalAndMotionData_$prefix.csv
+	Rscript ${scriptsDir}/splitHighLowMotionSubs.R tmp/functionalAndMotionData_$prefix.csv ${prefix}
+	for i in $(cut -d "," -f1 ${prefix}_highMotionSubs.csv);do
+		name=$(grep $i $dataTable | cut -d "," -f1)
+		cp tmp/${name}.$prefix.Z.nii tmp/${name}_$prefix.high.PCC.Z.nii ##need to change if we use new seeds
+	done
+	for i in $(cut -d "," -f1 ${prefix}_lowMotionSubs.csv);do
+		name=$(grep $i $dataTable | cut -d "," -f1)
+		cp tmp/${name}.$prefix.Z.nii tmp/${name}_$prefix.low.PCC.Z.nii ##need to change if we use new seeds
+	done
+	3dttest++ -setA tmp/*_$prefix.high.PCC.Z.nii -setB tmp/*_$prefix.low.PCC.Z.nii  -labelA highMotion -labelB lowMotion -prefix highVlow.$prefix.ttest.nii
+	3dttest++ -setA tmp/*_$prefix.*.PCC.Z.nii  -labelA all -prefix all.PCC.$prefix.ttest.nii
+	3dcalc -a highVlow.$prefix.ttest.nii'[1]' -expr 'ispositive(abs(a)-2.052)' -prefix tmp/threshHighVlow.$prefix.nii
+	3dBrickStat -sum tmp/threshHighVlow.$prefix.nii > numSigVox.txt
+	if [[ $censor == T ]];then ##Also run with raw movement values as these may be the worst subjects and where you want to see things cleaned up
+		rm tmp/*_$prefix.high.PCC.Z.nii
+		rm tmp/*_$prefix.low.PCC.Z.nii		
+		paste -d "," <(cat $dataTable | cut -d "," -f2) <(cat meanFDCens_list.txt) > tmp/functionalAndMotionData_$prefix.csv
+		Rscript ${scriptsDir}/splitHighLowMotionSubs.R tmp/functionalAndMotionData_$prefix.csv ${prefix}_Cens
+		for i in $(cut -d "," -f1 ${prefix}_highMotionSubs.csv);do
+			name=$(grep $i $dataTable | cut -d "," -f1)
+			mv tmp/${name}.$prefix.Z.nii tmp/${name}_$prefix.Cens.high.PCC.Z.nii ##need to change if we use new seeds
+		done
+		for i in $(cut -d "," -f1 ${prefix}_lowMotionSubs.csv);do
+			name=$(grep $i $dataTable | cut -d "," -f1)
+			mv tmp/${name}.$prefix.Z.nii tmp/${name}_$prefix.Cens.low.PCC.Z.nii ##need to change if we use new seeds
+		done
+		3dttest++ -setA tmp/*_$prefix.Cens.high.PCC.Z.nii -setB tmp/*_$prefix.Cens.low.PCC.Z.nii  -labelA highMotion -labelB lowMotion -prefix highVlow.Cens.$prefix.ttest.nii
+		3dttest++ -setA tmp/*_$prefix.Cens*.PCC.Z.nii  -labelA all -prefix all.PCC.Cens.$prefix.ttest.nii
+		3dcalc -a highVlow.Cens.$prefix.ttest.nii'[1]' -expr 'ispositive(abs(a)-2.052)' -prefix tmp/threshHighVlow.Cens.$prefix.nii
+		3dBrickStat -sum tmp/threshHighVlow.Cens.$prefix.nii > numSigVox.Cens.txt
+	fi
+	if [[ tmpFiles == F ]];then
+		rm -r tmp
+	fi
+	
+fi
+
+

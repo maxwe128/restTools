@@ -1,0 +1,300 @@
+extracting ROIs for bagehot_celtic
+extracting ROIs for bedridden_doorbell
+extracting ROIs for colobus_foothold
+extracting ROIs for conran_pupils
+extracting ROIs for cusack_havens
+extracting ROIs for excavator_posner
+extracting ROIs for folios_cortot
+extracting ROIs for gazeta_epigram
+extracting ROIs for goldfish_sologne
+extracting ROIs for header_bailment
+extracting ROIs for hiccup_scanlon
+extracting ROIs for homophony_rhubarb
+extracting ROIs for jadeite_invalid
+extracting ROIs for lefevre_beacon
+extracting ROIs for nausea_auntie
+extracting ROIs for oeuvre_sartre
+extracting ROIs for oxtail_bonnet
+extracting ROIs for peroxide_heinkel
+extracting ROIs for poplin_telesis
+extracting ROIs for potting_maisie
+extracting ROIs for primrose_outturn
+extracting ROIs for prophet_pollen
+extracting ROIs for seeker_cousteau
+extracting ROIs for storms_sanson
+extracting ROIs for suntan_funnies
+extracting ROIs for tomboy_gourmet
+extracting ROIs for wildman_geordie
+extracting ROIs for wordlist_deloitte
+extracting ROIs for zakopane_strabo
+extracting ROIs for adjutant_lyotard
+extracting ROIs for bogeys_melsonby
+extracting ROIs for brutes_cutler
+extracting ROIs for contra_cutter_V2
+extracting ROIs for frazer_status
+extracting ROIs for grunge_aleppo
+extracting ROIs for inflow_jansher
+extracting ROIs for marcos_gimlet
+extracting ROIs for meniscus_jarvis
+extracting ROIs for paladin_frelimo
+extracting ROIs for pidgin_mosses_V2
+extracting ROIs for reynard_mousse_V2
+extracting ROIs for thymus_product
+extracting ROIs for wheats_homemaker_V2
+call Rscript /x/wmn18/elliottml/motionComparisons//run_maskAves2carpet.R maskAveListOrdered.txt FD_list.txt /x/wmn18/elliottml/rest10M//carpet_PREP.A.5_3_CT_M6.motionPlots /x/wmn18/elliottml/motionComparisons/
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+TableGrob (2 x 1) "arrange": 2 grobs
+  z     cells    name           grob
+1 1 (1-1,1-1) arrange gtable[layout]
+2 2 (2-2,1-1) arrange gtable[layout]
+call Rscript /x/wmn18/elliottml/motionComparisons//run_maskAves2QCRSFC.R maskAveListOrdered.txt meanFD_list.txt /x/wmn18/elliottml/rest10M//QC_RSFC_PREP.A.5_3_CT_M6.motionPlots.png /x/wmn18/elliottml/motionComparisons/
+null device 
+          1 
+call Rscript /x/wmn18/elliottml/motionComparisons//run_maskAves2carpet.R maskAveListOrdered_RAW.txt FD_RAW_list.txt /x/wmn18/elliottml/rest10M//carpet_RAW_ /x/wmn18/elliottml/motionComparisons/
+call Rscript /x/wmn18/elliottml/motionComparisons//run_maskAves2QCRSFC.R maskAveListOrdered_RAW.txt meanFD_list.txt /x/wmn18/elliottml/rest10M//QC_RSFC_RAW_.png /x/wmn18/elliottml/motionComparisons/
+null device 
+          1 
+making Connectiviy map for bagehot_celtic
+making Connectiviy map for bedridden_doorbell
+making Connectiviy map for colobus_foothold
+making Connectiviy map for conran_pupils
+making Connectiviy map for cusack_havens
+making Connectiviy map for excavator_posner
+making Connectiviy map for folios_cortot
+making Connectiviy map for gazeta_epigram
+making Connectiviy map for goldfish_sologne
+making Connectiviy map for header_bailment
+making Connectiviy map for hiccup_scanlon
+making Connectiviy map for homophony_rhubarb
+making Connectiviy map for jadeite_invalid
+making Connectiviy map for lefevre_beacon
+making Connectiviy map for nausea_auntie
+making Connectiviy map for oeuvre_sartre
+making Connectiviy map for oxtail_bonnet
+making Connectiviy map for peroxide_heinkel
+making Connectiviy map for poplin_telesis
+making Connectiviy map for potting_maisie
+making Connectiviy map for primrose_outturn
+making Connectiviy map for prophet_pollen
+making Connectiviy map for seeker_cousteau
+making Connectiviy map for storms_sanson
+making Connectiviy map for suntan_funnies
+making Connectiviy map for tomboy_gourmet
+making Connectiviy map for wildman_geordie
+making Connectiviy map for wordlist_deloitte
+making Connectiviy map for zakopane_strabo
+making Connectiviy map for adjutant_lyotard
+making Connectiviy map for bogeys_melsonby
+making Connectiviy map for brutes_cutler
+making Connectiviy map for contra_cutter_V2
+making Connectiviy map for frazer_status
+making Connectiviy map for grunge_aleppo
+making Connectiviy map for inflow_jansher
+making Connectiviy map for marcos_gimlet
+making Connectiviy map for meniscus_jarvis
+making Connectiviy map for paladin_frelimo
+making Connectiviy map for pidgin_mosses_V2
+making Connectiviy map for reynard_mousse_V2
+making Connectiviy map for thymus_product
+making Connectiviy map for wheats_homemaker_V2
+> args <- commandArgs(trailingOnly = TRUE)
+> print(args)
+[1] "tmp/functionalAndMotionData_PREP.A.5_3_CT_M6.motionPlots.csv"
+[2] "PREP.A.5_3_CT_M6.motionPlots"                                
+> 
+> splitMotion<-function(data=args[1],prefix){
++   test<-read.csv(data,header = F)
++   med<-median(test[,2])
++   high<-test[test[,2]>=med,]
++   low<-test[test[,2]<med,]
++   write.table(high,paste(prefix,"_highMotionSubs.csv",sep=""),quote = F,row.names = F,sep = ",",col.names = F)
++   write.table(low,paste(prefix,"_lowMotionSubs.csv",sep=""),quote = F,row.names = F,sep=",",col.names = F)
++ }
+> 
+> splitMotion(args[1],args[2])
+> 
+> 
+> args <- commandArgs(trailingOnly = TRUE)
+> print(args)
+[1] "tmp/functionalAndMotionData_PREP.A.5_3_CT_M6.motionPlots.csv"
+[2] "PREP.A.5_3_CT_M6.motionPlots_Cens"                           
+> 
+> splitMotion<-function(data=args[1],prefix){
++   test<-read.csv(data,header = F)
++   med<-median(test[,2])
++   high<-test[test[,2]>=med,]
++   low<-test[test[,2]<med,]
++   write.table(high,paste(prefix,"_highMotionSubs.csv",sep=""),quote = F,row.names = F,sep = ",",col.names = F)
++   write.table(low,paste(prefix,"_lowMotionSubs.csv",sep=""),quote = F,row.names = F,sep=",",col.names = F)
++ }
+> 
+> splitMotion(args[1],args[2])
+> 
+> 
