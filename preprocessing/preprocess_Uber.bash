@@ -38,7 +38,7 @@ echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionR
 ID="PREP.A${ART}_C${CompCorr}_M${motionReg}"
 randID=$(date "+%Y-%m-%d_%H:%M:%S") #generates an ID based on time and Date that will be added to all outputFiles to distinguish runs of this script
 prepDir="${wd}/${subjName}/${ID}"
-surfPrepDir="${wd}/${subjName}/prep.${ID}"
+surfPrepDir="${wd}/${subjName}/surf.${ID}"
 antsDir="/data/SOIN/ANTS"
 scriptsDir="/data/elliottml/rest10M/scripts"
 
@@ -85,8 +85,11 @@ if [ $WarpAndSegment == T ];then
 		3dcalc -a ../rest${restNum}.nii.gz'[0]' -expr a -prefix tmp_rest${restNum}_0.nii.gz
 		3dcalc -a ../rest${restNum}.nii.gz'[5..$]' -expr a -prefix tmp_rest${restNum}_cut.nii.gz
 		if [[ $restNum > 1 ]];then
-			@Align_Centers -1Dmat_only -base tmp_rest1_0.nii.gz -dset tmp_rest${restNum}_cut.nii.gz
+			#####Should I be using the tmp_rest*_shft later in the script double Check!!!!!!!!#####
+			@Align_Centers -1Dmat_only -base tmp_rest1_0.nii.gz -dset tmp_rest${restNum}_cut
 			3dAllineate -1Dmatrix_apply tmp_rest${restNum}_cut_shft.1D -prefix tmp_rest${restNum}_shft.nii.gz -master tmp_rest1_0.nii.gz -input tmp_rest${restNum}_cut.nii.gz
+			mv tmp_rest${restNum}_cut.nii.gz tmp_old_rest${restNum}_cut.nii.gz
+			mv tmp_rest${restNum}_shft.nii.gz tmp_rest${restNum}_cut.nii.gz
 		fi
 		echo ""; echo "#################"; echo "motion correcting rest scans"; echo "#################"
 		3dvolreg -tshift 0 -prefix rest${restNum}_vr_${ID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${ID}.1D tmp_rest${restNum}_cut.nii.gz
@@ -117,7 +120,7 @@ if [ $WarpAndSegment == T ];then
 			3dresample -master ../Wrest1.nii.gz -prefix seg.wm.csf.resamp.nii.gz -inset seg.wm.csf.nii.gz
 			3dmerge -1clust_depth 5 5 -prefix seg.wm.csf.depth.nii.gz seg.wm.csf.resamp.nii.gz
 			3dcalc -a seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix seg.wm.csf.erode.nii.gz
-			gzip c[123]Wanat.nii
+			gzip c[123]Wanat.nii
 			mv c[123]Wanat.nii.gz ../
 			gzip mWanat.nii
 			mv mWanat.nii.gz ../
@@ -125,7 +128,7 @@ if [ $WarpAndSegment == T ];then
 		3dcalc -a seg.wm.csf.erode.nii.gz -b ../Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
 		3dpc -pcsave 5 -prefix ../pc${restNum}.wm.csf rest${restNum}.wm.csf.nii.gz
 		mv rest${restNum}.wm.csf.nii.gz ../
-	done
+	doneprepDir
 fi
 ####could remove everything other that Wanat.nii.gz and W_rest1_vr_motion_${ID}.nii.gz and W_rest2_vr_motion_${ID}.nii.gz decon output
 
@@ -238,8 +241,7 @@ len=$(echo $cen | wc -w)
 #expr $len + $motionReg + $comReg + 2 \* $numRest +
 numFirstPassReg=$(expr $motionReg + $compReg + 2 )
 numSecPassReg=$(expr $len + 2 \* $numBandReg)
-TRsLeft=$(expr $numTotalTRs - $numSecPassReg)
-echo "There will be $numFirstPassReg first pass regressors and $numSecPassReg second pass regressors, total Trs equals $numTotalTRs (assuming same number trs in all scans). The 2 pass regressions is a little hacky, may want to change in future but it saves subjects at this point"
+TRsLeft=$(expr $numTotalTRs - $numSecPassReg)ls 
 
 cat regressors*_IN.1D > allRegressors.1D
 if [[ $len == 0 ]];then
@@ -259,45 +261,50 @@ fi
 if [[ $surf == T ]];then
 	mkdir -p $surfPrepDir
 	cd $surfPrepDir
+	cp $prepDir/allRegressors.1D ./
 	if [[ $len == 0 ]];then
-		3dTproject -input ../rest*_vr_${ID}.nii.gz -prefix vol4surf.concat_blurat${smooth}mm_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10
+		3dTproject -input ../rest*_vr.nii.gz -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10
 	else
-		3dTproject -input ../rest*_vr_${ID}.nii.gz -prefix vol4surf.concat_blurat${smooth}mm_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -CENSORTR $cen
+		3dTproject -input ../rest*_vr.nii.gz -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -CENSORTR $cen
 	fi
-	if [[ ! -d ../surf ]];then
+	if [[ ! -f ${wd}/${subjName}/surf/rh.sphere ]];then
+		echo "Creating surfaces with Freesurfer and MakeSpec"
 		export SUBJECTS_DIR=$wd
 		sub=$subjName
-###########################################work on stuff from here down###################################
-		cd $SUBJECTS_DIR
+		cd $wd
 		mksubjdirs $sub
-##COPY SUBJECTS T1 to FS directory
-cd $sub/mri/orig
-mri_convert $rootdir/sib1.5Tstructs/raw/$sub.n3.nii 001.mgz
-##RUN FS ON SUBJECT
-cd $SUBJECTS_DIR
-recon-all -all -subject $sub
-##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLE
-cd $SUBJECTS_DIR/$sub
-@SUMA_Make_Spec_FS -use_mgz -sid $sub
-
-	3dcalc -a ${oldDir}rstrip.anat.nii.gz -expr a -prefix tmp1
-@SUMA_AlignToExperiment -exp_anat tmp1+orig -surf_anat brainmask.nii -align_centers
-	for j in std.141.${1}_rh std.141.${1}_lh std.60.${1}_rh std.60.${1}_lh ${1}_lh ${1}_rh;do
-		3dVol2Surf -spec ${j}.spec -surf_A smoothwm -surf_B pial -sv brainmask_Alnd_Exp+orig -grid_parent /data/NIMH_SOIN/elliottml/COBRE_SZ/COBRE/${1}/session_1/data/rest1_vr.nii.gz -map_func ave -f_steps 10 -f_index nodes -out_niml ${j}.func_ave.niml.dset
-
-
-		3dVol2Surf                                                \
-	       -spec                fred.spec                         \
-	       -surf_A              smoothwm                          \
-	       -surf_B              pial                              \
-	       -sv                  SurfVolAlndExp+orig               \
-	       -grid_parent         EPI_all_runs+orig                 \
-	       -map_func            ave                               \
-	       -f_steps             15                                \
-	       -f_index             nodes                             \
-	       -outcols_NSD_format                                    \
-	       -out_niml            EPI_runs.niml.dset
+		cd $sub/mri/orig
+		mri_convert ${wd}/${subjName}/anat.nii.gz 001.mgz
+		##RUN FS ON SUBJECT
+		cd $SUBJECTS_DIR
+		recon-all -all -subject $sub
+		##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLE
+		cd $SUBJECTS_DIR/$sub
+		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
+	elif [[ ! -f ${wd}/${subjName}/SUMA/std.141.rh.thickness.niml.dset ]];then
+		echo "Freesurfer already completed, running MakeSpec"
+		export SUBJECTS_DIR=$wd
+		sub=$subjName
+		cd $SUBJECTS_DIR/$sub
+		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
+		
+	else
+		echo "Freesurfer and MakeSpec already ran"
+	fi
+	echo "Surfaces are created, sampling rest data to surface and using FS segmentations to keep volume data"
+	cd $surfPrepDir
+	###Align all volume files to Surface space
+	3dcalc -a ../rstrip.anat1.nii.gz -expr 'a' -prefix rstrip.anat
+	3dcalc -a ../SUMA/aparc.a2009s+aseg_rank.nii -expr 'a' -prefix aparc.a2009s+aseg_rank
+	3dcalc -a ../SUMA/aseg_rank.nii -expr 'a' -prefix aseg_rank
+	3dcalc -a ../SUMA/aparc+aseg_rank.nii -expr 'a' -prefix aparc+aseg_rank
+	@SUMA_AlignToExperiment -exp_anat rstrip.anat+orig. -surf_anat ../SUMA/brainmask.nii -align_centers -prefix anat_Alnd_exp -surf_anat_followers aparc.a2009s+aseg_rank+orig. aseg_rank+orig. aparc+aseg_rank+orig.
+	for mesh in std.60.${subjName}_rh std.60.${subjName}_lh std.30.${subjName}_rh std.30.${subjName}_lh;do
+		3dVol2Surf -spec ../SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent vol4surf.concat_bpss_${ID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -out_niml ${mesh}.concat_bpss_${ID}.niml.dset
+		SurfSmooth -met HEAT_07 -input $mesh.spec -fwhm 10 -output $mesh.concat_SurfSmooth10mm_bpss_${ID}.niml.dset -spec ../SUMA/$mesh.spec
 	done
+	####Extract non-cortical values from volume in organized way
+	
 fi
 
 #######################################################
