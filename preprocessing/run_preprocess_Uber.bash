@@ -27,7 +27,8 @@ else
 	motionReg=$6 #how many motion regressors do you want in preprocessing. See above for details
 	smooth=$7 ##smoothing kernel, can be any integer
 	numRest=$8
-	tempFiles=$9
+	surf=$9
+	tempFiles=$10
 	cwd=$(pwd)
 
 	ID="A${ART}_C${CompCorr}_M${motionReg}"

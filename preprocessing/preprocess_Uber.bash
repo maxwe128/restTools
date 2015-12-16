@@ -302,14 +302,16 @@ if [[ $surf == T ]];then
 	3dcalc -a ../../SUMA/aparc+aseg_rank.nii -expr 'a' -prefix aparc+aseg_rank
 	@SUMA_AlignToExperiment -exp_anat rstrip.anat+orig. -surf_anat ../../SUMA/brainmask.nii -align_centers -prefix anat_Alnd_exp -surf_anat_followers aparc.a2009s+aseg_rank+orig. aseg_rank+orig. aparc+aseg_rank+orig.
 	for mesh in std.60.${subjName}_rh std.60.${subjName}_lh std.30.${subjName}_rh std.30.${subjName}_lh;do
-		3dVol2Surf -spec ../SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent vol4surf.concat_bpss_${ID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -out_niml ${mesh}.concat_bpss_${ID}.niml.dset
-		SurfSmooth -met HEAT_07 -input $mesh.spec -fwhm 10 -output $mesh.concat_SurfSmooth10mm_bpss_${ID}.niml.dset -spec ../SUMA/$mesh.spec
+		3dVol2Surf -spec ../SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent vol4surf.concat_bpss_${ID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -skip_col_nodes -skip_col_1dindex -skip_col_i -skip_col_j -skip_col_k -skip_col_vals -no_headers -out_1D ${mesh}.concat_bpss_${ID}.1D.dset
+		SurfSmooth -met HEAT_07 -input ${mesh}.concat_bpss_${ID}.1D.dset -fwhm 10 -output $mesh.concat_SurfSmooth10mm_bpss_${ID}.1D.dset -spec ../SUMA/$mesh.spec
+		mv $mesh.concat_SurfSmooth10mm_bpss_${ID}.1D.dset ../
 	done
 	####Extract non-cortical values from volume in organized way
 	3dresample -master vol4surf.concat_bpss_${ID}.nii.gz -inset aseg_rank_Alnd_Exp+orig.HEAD -prefix aseg_rank_Alnd_resamp.nii
 	3dcalc -a aseg_rank_Alnd_resamp.nii -b $regMask -expr '(ispositive(equals(a,28))*a+ispositive(equals(a,8))*a+ispositive(equals(a,29))*a+ispositive(equals(a,9))*a+ispositive(equals(a,27))*a+ispositive(equals(a,7))*a+ispositive(equals(a,30))*a+ispositive(equals(a,10))*a+ispositive(equals(a,7))*a+ispositive(equals(a,13))*a+ispositive(equals(a,26))*a+ispositive(equals(a,6))*a+ispositive(equals(a,15))*a+ispositive(equals(a,14))*a+ispositive(equals(a,31))*a+ispositive(equals(a,32))*a)*b' -prefix volumeForSurfAnalysesMask.nii
 	3dcalc -b vol4surf.concat_bpss_${ID}.nii.gz -a volumeForSurfAnalysesMask.nii -expr '(ispositive(a))*b' -prefix volData.NonCortival.concat_bpss_${ID}.nii
-	3dBlurInMask -input volData.NonCortival.concat_bpss_${ID}.nii -FWHM $smooth -mask volumeForSurfAnalysesMask.nii -prefix volData.NonCortival.concat_blurat${smooth}mm_bpss_${ID}.nii #should I use Mmask option to only blur in distinct anatomical regions
+	3dBlurInMask -input volData.NonCortival.concat_bpss_${ID}.nii -FWHM $smooth -mask volumeForSurfAnalysesMask.nii -prefix volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii #should I use Mmask option to only blur in distinct anatomical regions
+	mv volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii ../
 fi
 
 #######################################################
