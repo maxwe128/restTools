@@ -146,6 +146,7 @@ while read subScan;do
 						echo "scanNotes=$scanNotes" >> $wd/data/$obscureName/info.rest.$scanDate.$scanExam.$scanSeries.txt
 						echo "QC=" >> $wd/data/$obscureName/info.rest.$scanDate.$scanExam.$scanSeries.txt
 						mv $wd/data/$obscureName/tmpRestRaw/*/*/$rstSCN/rest.$scanDate.$scanExam.$scanSeries.nii $wd/data/$obscureName/
+						gzip $wd/data/$obscureName/rest.$scanDate.$scanExam.$scanSeries.nii
 						cd $wd/data/$obscureName/
 					else
 						echo "FullTarPath=$fullTarPath" >> $wd/data/$obscureName/info.rest.$scanDate.$scanExam.$scanSeries.txt
