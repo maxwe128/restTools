@@ -2,11 +2,11 @@
 ###make swarm, run swarm
 
 export OMP_NUM_THREADS=4
-if [[ $# < 9 ]];then
+if [[ $# < 10 ]];then
 	echo "
 	######Call structure############
 
-	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} {number Rest per Person} {keep Temp files?}
+	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} {number Rest per Person} {run Surface pipeline} {keep Temp files?}
 	
 	Example) run_preprocess_Uber.bash ../data_V1/ 10MInclusiveList F .25_3 F 24 10 2 F
 	##############Intro################
