@@ -77,9 +77,7 @@ cd $prepDir
 
 if [ ! -f concat_blurat${smooth}mm_${ID}.nii.gz ];then
 if [ $WarpAndSegment == T ];then
-	module load matlab
 	#####Bulk preprocessing#####
-	matlab -nodesktop -nojvm -nosplash -r "run('/home/gregorymd/matlab_license_hold.m')" &
 	for restNum in $(seq 1 $numRest);do
 		echo "#################"; echo "copying raw data"; echo "#################"
 		3dcalc -a ../rest${restNum}.nii.gz'[0]' -expr a -prefix tmp_rest${restNum}_0.nii.gz
