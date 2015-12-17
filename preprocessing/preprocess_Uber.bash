@@ -40,7 +40,7 @@ randID=$(date "+%Y-%m-%d_%H:%M:%S") #generates an ID based on time and Date that
 prepDir="${wd}/${subjName}/${ID}"
 surfPrepDir="${wd}/${subjName}/surf.${ID}"
 antsDir="/data/SOIN/ANTS"
-scriptsDir="/data/elliottml/rest10M/scripts"
+scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 project=$(echo $wd | cut -d "/" -f4)
 if [ $project == "rest10M" ];then
@@ -64,16 +64,16 @@ mkdir -p $prepDir
 cd $prepDir
 
 #setup matlab MCR env variables
-export MCRROOT="/usr/local/matlab-compiler/v80"
-export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64
-export MCRJRE=${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/native_threads
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/server
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
-export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
+#export MCRROOT="/usr/local/matlab-compiler/v80"
+#export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
+#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
+#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64
+#export MCRJRE=${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
+#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/native_threads
+#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/server
+#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
+#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
+#export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
 
 if [ ! -f concat_blurat${smooth}mm_${ID}.nii.gz ];then
 if [ $WarpAndSegment == T ];then
@@ -95,7 +95,7 @@ if [ $WarpAndSegment == T ];then
 		3dvolreg -tshift 0 -prefix rest${restNum}_vr_${ID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${ID}.1D tmp_rest${restNum}_cut.nii.gz
 		echo ""; echo "#################"; echo "starting spatial normalization and spm5 coregistration"; echo "#################"
 		cp ../anat.nii.gz ./anat${restNum}.nii.gz
-		$scriptsDir/norm.func.spm5.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz
+		$scriptsDir/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz $scriptsDir
 		kill %1
 		${antsDir}/WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${ID}.nii.gz W_rest${restNum}_vr_${ID}.nii.gz -R template_tmp_rest${restNum}_0.nii.gz Wanat${restNum}_Warp.nii.gz Wanat${restNum}_Affine.txt --use-NN
 		3drefit -space MNI -view tlrc W_rest${restNum}_vr_${ID}.nii.gz
