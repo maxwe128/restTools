@@ -64,16 +64,6 @@ mkdir -p $prepDir
 cd $prepDir
 
 #setup matlab MCR env variables
-#export MCRROOT="/usr/local/matlab-compiler/v80"
-#export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
-#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
-#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64
-#export MCRJRE=${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
-#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/native_threads
-#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/server
-#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
-#export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
-#export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
 
 if [ ! -f concat_blurat${smooth}mm_${ID}.nii.gz ];then
 if [ $WarpAndSegment == T ];then
@@ -108,6 +98,16 @@ if [ $WarpAndSegment == T ];then
 		gunzip ../rest${restNum}_vr.nii.gz
 		if [[ $restNum < 2 ]];then
 			cp ../Wanat.nii ./
+			export MCRROOT="/usr/local/matlab-compiler/v80"
+			export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
+			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
+			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64
+			export MCRJRE=${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
+			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/native_threads
+			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/server
+			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
+			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
+			export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
 			/data/SOIN/scripts/spm5_segment Wanat.nii /data/SOIN/templates/tpm
 			echo ""; echo "#################"; echo "calculating aCompCor components"; echo "#################"
 			3dAllineate -base Wanat.nii -source mWanat.nii.gz -prefix mWanat_warp.nii.gz -1Dmatrix_save segment.1D
@@ -195,6 +195,16 @@ if [ $ART != F ];then
 		sd=$(echo $ART | cut -d "_" -f2)
 		sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/global_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg
 		######Art#####
+		export MCRROOT="/usr/local/matlab-compiler/v80"
+		export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
+		export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
+		export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64
+		export MCRJRE=${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
+		export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/native_threads
+		export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/server
+		export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
+		export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
+		export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
 		${scriptsDir}/art rest${restNum}_new.cfg
 		mv outliers.1D outliers${restNum}_new.1D
 		outliers=$(cat outliers${restNum}_new.1D)
