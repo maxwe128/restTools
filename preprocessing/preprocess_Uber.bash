@@ -128,7 +128,7 @@ if [ $WarpAndSegment == T ];then
 		3dcalc -a seg.wm.csf.erode.nii.gz -b ../Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
 		3dpc -pcsave 5 -prefix ../pc${restNum}.wm.csf rest${restNum}.wm.csf.nii.gz
 		mv rest${restNum}.wm.csf.nii.gz ../
-	doneprepDir
+	done
 fi
 ####could remove everything other that Wanat.nii.gz and W_rest1_vr_motion_${ID}.nii.gz and W_rest2_vr_motion_${ID}.nii.gz decon output
 
