@@ -21,26 +21,22 @@ if [[ $# < 10 ]];then
 else
 	wd=$1 #begginning of tree, assumes that all subjects have their own folder within this dir
 	subjList=$2 #Assumes that in subject folder is a file called anat.nii.gz, rest1.nii.gz and rest2.nii.gz, this is also where I keep FS and SUMA dirs
-	WarpAndSegment=$3 #either T or F, this is for the case where you are modifying or adding to preprocessing that has already been run, assumes bulk section below has been run
+	WarpAndSegment=$3 #either T or F,F assumes bulk section has been run, First time running this on a subject this should always be T
 	ART=$4 #should be in form {integer indicating mm movement cutoff within TR}_{integer indicating sd of signal change cutoff}. Example) .25_3. Can also be F for no ART
-	CompCorr=$5 #either T or F. Do you want CompCorr run of dataset
+	CompCorr=$5 #either T or F. Do you want CompCorr run on dataset
 	motionReg=$6 #how many motion regressors do you want in preprocessing. See above for details
 	smooth=$7 ##smoothing kernel, can be any integer
-	numRest=$8
-	surf=$9
-	tempFiles=$10
+	numRest=$8 ##how many good rest scans do you have per subject
+	surf=$9 ##Either T of F, Do you want Freesurfer and @Suma_Make_Spec_FS run on subject. Will check to see if it has already been run in the correct place of subs Tree
+	tempFiles=$10 ## Do you want extra file deleted. Should be F except for when debugging
 	cwd=$(pwd)
 
 	ID="A${ART}_C${CompCorr}_M${motionReg}"
 	timeID=$(date "+%Y-%m-%d_%H:%M:%S")
 	#####Make Swarm####
 	for i in $(less $subjList);do
-		echo "cd /data/elliottml/rest10M/scripts; ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
+		echo "cd /data/elliottml/rest10M/scripts; ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 	####Run Swarm#####
-	if [[ $WarpAndSegment == T ]];then
-		swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --sbatch "--license=matlab" --singleout
-	else
 		swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --singleout
-	fi
 fi

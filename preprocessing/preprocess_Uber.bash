@@ -280,7 +280,7 @@ if [[ $surf == T ]];then
 		cd $SUBJECTS_DIR/$sub
 		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
 	elif [[ ! -f ${wd}/${subjName}/SUMA/std.141.rh.thickness.niml.dset ]];then
-		echo "Freesurfer already completed, running MakeSpec"
+		echo "Freesurfer completed, running MakeSpec"
 		export SUBJECTS_DIR=$wd
 		sub=$subjName
 		cd $SUBJECTS_DIR/$sub

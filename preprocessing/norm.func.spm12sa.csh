@@ -6,7 +6,7 @@ setenv ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS 4
 setenv PATH  /data/SOIN/ANTS:$PATH 
 set path = ( /data/SOIN/ANTS $path )
 
-set scriptdir = /data/NIMH_SOIN/elliottml/COBRE_SZ/scripts
+set scriptdir = /data/elliottml/00M_rest/scripts/restTools/preprocessing/
 if ($#argv < 2) then 
 	goto endscript
 else if ($#argv == 2) then
