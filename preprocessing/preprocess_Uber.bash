@@ -80,11 +80,11 @@ if [ $WarpAndSegment == T ];then
 			mv tmp_rest${restNum}_shft.nii.gz tmp_rest${restNum}_cut.nii.gz
 		fi
 		echo ""; echo "#################"; echo "motion correcting rest scans"; echo "#################"
-		3dvolreg -tshift 0 -prefix rest${restNum}_vr_${ID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${ID}.1D tmp_rest${restNum}_cut.nii.gz
+		3dvolreg -tshift 0 -prefix rest${restNum}_vr_${ID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${ID}.1D tmp_rest${restNum}_+orig.
 		echo ""; echo "#################"; echo "starting spatial normalization and spm5 coregistration"; echo "#################"
 		cp ../anat.nii.gz ./anat${restNum}.nii.gz
 		$scriptsDir/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz $scriptsDir
-		kill %1
+		#kill %1
 		${antsDir}/WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${ID}.nii.gz W_rest${restNum}_vr_${ID}.nii.gz -R template_tmp_rest${restNum}_0.nii.gz Wanat${restNum}_Warp.nii.gz Wanat${restNum}_Affine.txt --use-NN
 		3drefit -space MNI -view tlrc W_rest${restNum}_vr_${ID}.nii.gz
 		echo ""; echo "#################"; echo "segmenting anatomic scan "; echo "#################"
