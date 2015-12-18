@@ -71,12 +71,12 @@ if [ $WarpAndSegment == T ];then
 	for restNum in $(seq 1 $numRest);do
 		echo "#################"; echo "copying raw data"; echo "#################"
 		3dcalc -a ../rest${restNum}.nii.gz'[0]' -expr a -prefix tmp_rest${restNum}_0.nii.gz
-		3dcalc -a ../rest${restNum}.nii.gz'[5..$]' -expr a -prefix tmp_rest${restNum}_cut.nii.gz
+		3dcalc -a ../rest${restNum}.nii.gz'[5..$]' -expr a -prefix tmp_rest${restNum}_cut
 		if [[ $restNum > 1 ]];then
 			#####Should I be using the tmp_rest*_shft later in the script double Check!!!!!!!!#####
-			@Align_Centers -1Dmat_only -base tmp_rest1_0.nii.gz -dset tmp_rest${restNum}_cut
-			3dAllineate -1Dmatrix_apply tmp_rest${restNum}_cut_shft.1D -prefix tmp_rest${restNum}_shft.nii.gz -master tmp_rest1_0.nii.gz -input tmp_rest${restNum}_cut.nii.gz
-			mv tmp_rest${restNum}_cut.nii.gz tmp_old_rest${restNum}_cut.nii.gz
+			@Align_Centers -1Dmat_only -base tmp_rest1_0.nii.gz -dset tmp_rest${restNum}_cut+orig.
+			3dAllineate -1Dmatrix_apply tmp_rest${restNum}_cut_shft.1D -prefix tmp_rest${restNum}_shft.nii.gz -master tmp_rest1_0.nii.gz -input tmp_rest${restNum}_cut+orig.
+			#mv tmp_rest${restNum}_cut.nii.gz tmp_old_rest${restNum}_cut.nii.gz
 			mv tmp_rest${restNum}_shft.nii.gz tmp_rest${restNum}_cut.nii.gz
 		fi
 		echo ""; echo "#################"; echo "motion correcting rest scans"; echo "#################"
@@ -118,7 +118,7 @@ if [ $WarpAndSegment == T ];then
 			3dresample -master ../Wrest1.nii.gz -prefix seg.wm.csf.resamp.nii.gz -inset seg.wm.csf.nii.gz
 			3dmerge -1clust_depth 5 5 -prefix seg.wm.csf.depth.nii.gz seg.wm.csf.resamp.nii.gz
 			3dcalc -a seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix seg.wm.csf.erode.nii.gz
-			gzip c[123]Wanat.nii
+			#gzip c[123]Wanat.nii
 			mv c[123]Wanat.nii.gz ../
 			gzip mWanat.nii
 			mv mWanat.nii.gz ../
