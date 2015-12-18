@@ -5,6 +5,9 @@
 
 if [[ $# < 10 ]];then
 	echo "
+	########Requirements###########
+	1)Ants needs to be downloaded and in your path
+	2)spm12sa needs to be downloaded and in your path
 	######Call structure############
 
 	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} {keep Temp files?}
@@ -39,7 +42,6 @@ ID="PREP.A${ART}_C${CompCorr}_M${motionReg}"
 randID=$(date "+%Y-%m-%d_%H:%M:%S") #generates an ID based on time and Date that will be added to all outputFiles to distinguish runs of this script
 prepDir="${wd}/${subjName}/${ID}"
 surfPrepDir="${wd}/${subjName}/surf.${ID}"
-antsDir="/data/SOIN/ANTS"
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 project=$(echo $wd | cut -d "/" -f4)
@@ -75,17 +77,19 @@ if [ $WarpAndSegment == T ];then
 		if [[ $restNum > 1 ]];then
 			#####Should I be using the tmp_rest*_shft later in the script double Check!!!!!!!!#####
 			@Align_Centers -1Dmat_only -base tmp_rest1_0.nii.gz -dset tmp_rest${restNum}_cut+orig.
-			3dAllineate -1Dmatrix_apply tmp_rest${restNum}_cut_shft.1D -prefix tmp_rest${restNum}_shft.nii.gz -master tmp_rest1_0.nii.gz -input tmp_rest${restNum}_cut+orig.
-			#mv tmp_rest${restNum}_cut.nii.gz tmp_old_rest${restNum}_cut.nii.gz
-			mv tmp_rest${restNum}_shft.nii.gz tmp_rest${restNum}_cut.nii.gz
+			3dAllineate -1Dmatrix_apply tmp_rest${restNum}_cut_shft.1D -prefix tmp_rest${restNum}_shft -master tmp_rest1_0.nii.gz -input tmp_rest${restNum}_cut+orig.
+			mv tmp_rest${restNum}_cut+orig.BRIK tmp_old_rest${restNum}_cut+orig.BRIK
+			mv tmp_rest${restNum}_cut+orig.HEAD tmp_old_rest${restNum}_cut+orig.HEAD
+			mv tmp_rest${restNum}_shft+orig.HEAD tmp_rest${restNum}_cut+orig.HEAD
+			mv tmp_rest${restNum}_shft+orig.BRIK tmp_rest${restNum}_cut+orig.BRIK
 		fi
 		echo ""; echo "#################"; echo "motion correcting rest scans"; echo "#################"
-		3dvolreg -tshift 0 -prefix rest${restNum}_vr_${ID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${ID}.1D tmp_rest${restNum}_+orig.
+		3dvolreg -tshift 0 -prefix rest${restNum}_vr_${ID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${ID}.1D tmp_rest${restNum}_cut+orig.
 		echo ""; echo "#################"; echo "starting spatial normalization and spm5 coregistration"; echo "#################"
 		cp ../anat.nii.gz ./anat${restNum}.nii.gz
 		$scriptsDir/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz $scriptsDir
 		#kill %1
-		${antsDir}/WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${ID}.nii.gz W_rest${restNum}_vr_${ID}.nii.gz -R template_tmp_rest${restNum}_0.nii.gz Wanat${restNum}_Warp.nii.gz Wanat${restNum}_Affine.txt --use-NN
+		WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${ID}.nii.gz W_rest${restNum}_vr_${ID}.nii.gz -R template_tmp_rest${restNum}_0.nii.gz Wanat${restNum}_Warp.nii.gz Wanat${restNum}_Affine.txt --use-NN
 		3drefit -space MNI -view tlrc W_rest${restNum}_vr_${ID}.nii.gz
 		echo ""; echo "#################"; echo "segmenting anatomic scan "; echo "#################"
 		if [[ $restNum < 2 ]];then
