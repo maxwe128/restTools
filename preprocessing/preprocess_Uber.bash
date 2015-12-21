@@ -322,7 +322,7 @@ if [[ $surf == T ]];then
 	done
 	####Extract non-cortical values from volume in organized way
 	3dresample -master vol4surf.concat_bpss_${ID}.nii.gz -inset aseg_rank_Alnd_Exp+orig.HEAD -prefix aseg_rank_Alnd_resamp.nii
-	3dcalc -a aseg_rank_Alnd_resamp.nii -b $regMask -expr '(ispositive(equals(a,28))*a+ispositive(equals(a,8))*a+ispositive(equals(a,29))*a+ispositive(equals(a,9))*a+ispositive(equals(a,27))*a+ispositive(equals(a,7))*a+ispositive(equals(a,30))*a+ispositive(equals(a,10))*a+ispositive(equals(a,7))*a+ispositive(equals(a,13))*a+ispositive(equals(a,26))*a+ispositive(equals(a,6))*a+ispositive(equals(a,15))*a+ispositive(equals(a,14))*a+ispositive(equals(a,31))*a+ispositive(equals(a,32))*a)*b' -prefix volumeForSurfAnalysesMask.nii
+	3dcalc -a aseg_rank_Alnd_resamp.nii -expr '(ispositive(equals(a,28))*a+ispositive(equals(a,8))*a+ispositive(equals(a,29))*a+ispositive(equals(a,9))*a+ispositive(equals(a,27))*a+ispositive(equals(a,7))*a+ispositive(equals(a,30))*a+ispositive(equals(a,10))*a+ispositive(equals(a,7))*a+ispositive(equals(a,13))*a+ispositive(equals(a,26))*a+ispositive(equals(a,6))*a+ispositive(equals(a,15))*a+ispositive(equals(a,14))*a+ispositive(equals(a,31))*a+ispositive(equals(a,32))*a)' -prefix volumeForSurfAnalysesMask.nii
 	3dcalc -b vol4surf.concat_bpss_${ID}.nii.gz -a volumeForSurfAnalysesMask.nii -expr '(ispositive(a))*b' -prefix volData.NonCortival.concat_bpss_${ID}.nii
 	3dBlurInMask -input volData.NonCortival.concat_bpss_${ID}.nii -FWHM $smooth -Mmask volumeForSurfAnalysesMask.nii -prefix volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii #should I use Mmask option to only blur in distinct anatomical regions
 	mv volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii ../
