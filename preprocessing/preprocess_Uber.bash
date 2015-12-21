@@ -8,6 +8,7 @@ if [[ $# < 10 ]];then
 	########Requirements###########
 	1)Ants needs to be downloaded and in your path
 	2)spm12sa needs to be downloaded and in your path
+	3)Freesurfer needs to be downloaded and in your path
 	######Call structure############
 
 	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} {keep Temp files?}
@@ -184,8 +185,8 @@ done
 cat tmp_FD*.1D > FD_both.1D
 awk '{s+=$1}END{print s/NR}' RS="\n" FD_both.1D >meanFD.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
 if [ $tempFiles == F ];then
-	rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* pc* seg*
-	gzip *.nii*
+	rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* seg*
+	gzip *.nii
 else
 	echo "keeping Files"
 fi
@@ -197,7 +198,8 @@ if [ $ART != F ];then
 		sed 's/rest1/rest'${restNum}'/g' ${scriptsDir}/rest${restNum}_std.cfg > rest${restNum}_std.cfg
 		mm=$(echo $ART | cut -d "_" -f1)
 		sd=$(echo $ART | cut -d "_" -f2)
-		sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/global_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg
+		sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/glob** ERROR (nifti_image_read): failed to find header file for '../rest*_vr.nii.gz'
+al_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg
 		######Art#####
 		export MCRROOT="/usr/local/matlab-compiler/v80"
 		export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
@@ -273,11 +275,11 @@ fi
 if [[ $surf == T ]];then
 	mkdir -p $surfPrepDir
 	cd $surfPrepDir
-	cp $prepDir/allRegressors.1D ./
+	cp ${prepDir}/allRegressors.1D ./
 	if [[ $len == 0 ]];then
-		3dTproject -input ../rest*_vr.nii.gz -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10
+		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
 	else
-		3dTproject -input ../rest*_vr.nii.gz -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -CENSORTR $cen
+		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $cen
 	fi
 	if [[ ! -f ${wd}/${subjName}/surf/rh.sphere ]];then
 		echo "Creating surfaces with Freesurfer and MakeSpec"
@@ -285,19 +287,19 @@ if [[ $surf == T ]];then
 		sub=$subjName
 		cd $wd
 		mksubjdirs $sub
-		cd $sub/mri/orig
-		mri_convert ${wd}/${subjName}/anat.nii.gz 001.mgz
+		cd ${wd}/${sub}/mri/orig
+		mri_convert ${wd}/${sub}/anat.nii.gz 001.mgz
 		##RUN FS ON SUBJECT
 		cd $SUBJECTS_DIR
 		recon-all -all -subject $sub
 		##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLE
-		cd $SUBJECTS_DIR/$sub
+		cd ${SUBJECTS_DIR}/${sub}
 		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
 	elif [[ ! -f ${wd}/${subjName}/SUMA/std.141.rh.thickness.niml.dset ]];then
 		echo "Freesurfer completed, running MakeSpec"
 		export SUBJECTS_DIR=$wd
 		sub=$subjName
-		cd $SUBJECTS_DIR/$sub
+		cd ${SUBJECTS_DIR}/${sub}
 		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
 		
 	else
@@ -305,7 +307,7 @@ if [[ $surf == T ]];then
 	fi
 	echo "Surfaces are created, sampling rest data to surface and using FS segmentations to keep volume data"
 	cd $surfPrepDir
-	mkdir tmp
+	mkdir -p tmp
 	cd tmp
 	###Align all volume files to Surface space
 	3dcalc -a ../../rstrip.anat1.nii.gz -expr 'a' -prefix rstrip.anat
@@ -322,7 +324,7 @@ if [[ $surf == T ]];then
 	3dresample -master vol4surf.concat_bpss_${ID}.nii.gz -inset aseg_rank_Alnd_Exp+orig.HEAD -prefix aseg_rank_Alnd_resamp.nii
 	3dcalc -a aseg_rank_Alnd_resamp.nii -b $regMask -expr '(ispositive(equals(a,28))*a+ispositive(equals(a,8))*a+ispositive(equals(a,29))*a+ispositive(equals(a,9))*a+ispositive(equals(a,27))*a+ispositive(equals(a,7))*a+ispositive(equals(a,30))*a+ispositive(equals(a,10))*a+ispositive(equals(a,7))*a+ispositive(equals(a,13))*a+ispositive(equals(a,26))*a+ispositive(equals(a,6))*a+ispositive(equals(a,15))*a+ispositive(equals(a,14))*a+ispositive(equals(a,31))*a+ispositive(equals(a,32))*a)*b' -prefix volumeForSurfAnalysesMask.nii
 	3dcalc -b vol4surf.concat_bpss_${ID}.nii.gz -a volumeForSurfAnalysesMask.nii -expr '(ispositive(a))*b' -prefix volData.NonCortival.concat_bpss_${ID}.nii
-	3dBlurInMask -input volData.NonCortival.concat_bpss_${ID}.nii -FWHM $smooth -mask volumeForSurfAnalysesMask.nii -prefix volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii #should I use Mmask option to only blur in distinct anatomical regions
+	3dBlurInMask -input volData.NonCortival.concat_bpss_${ID}.nii -FWHM $smooth -Mmask volumeForSurfAnalysesMask.nii -prefix volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii #should I use Mmask option to only blur in distinct anatomical regions
 	mv volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii ../
 fi
 
