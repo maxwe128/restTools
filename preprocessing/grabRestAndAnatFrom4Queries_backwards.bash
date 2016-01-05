@@ -46,6 +46,7 @@ cat /helix/data/00M_rest/lists/restNoNotes_$date | sed 's/"//g' | tail -n +3 | s
 cat /helix/data/00M_rest/lists/restWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/restWithNotes_$date.hashsv
 cat /helix/data/00M_rest/lists/anatNoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatNoNotes_$date.hashsv
 cat /helix/data/00M_rest/lists/anatWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatWithNotes_$date.hashsv
+tac $wd/lists/restNoNotes_$date.hashsv > $wd/lists/restNoNotes_${date}_backwards.hashsv
 while read subScan;do
 	race=$(echo $subScan | cut -f4 -d "#")
 	diagnoses=$(echo $subScan | cut -f6 -d "#")
@@ -236,4 +237,4 @@ while read subScan;do
 		echo "Weird DOB for $obscureName, skipping a tarball, check error log in /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error"
 		echo "problem with $tarb, skipping because of DOB:$DOB" >> /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error
 	fi
-done < $wd/lists/restNoNotes_$date.hashsv
+done < $wd/lists/restNoNotes_${date}_backwards.hashsv
