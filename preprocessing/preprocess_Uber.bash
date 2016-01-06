@@ -197,8 +197,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
 			sed 's/rest1/rest'${restNum}'/g' ${scriptsDir}/rest${restNum}_std.cfg > rest${restNum}_std.cfg
 			mm=$(echo $ART | cut -d "_" -f1)
 			sd=$(echo $ART | cut -d "_" -f2)
-			sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/glob** ERROR (nifti_image_read): failed to find header file for '../rest*_vr.nii.gz'
-	al_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg
+			sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/global_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg
 			######Art#####
 			export MCRROOT="/usr/local/matlab-compiler/v80"
 			export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
@@ -294,7 +293,9 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 		export SUBJECTS_DIR=$wd
 		sub=$subjName
 		cd $wd
-		mksubjdirs $sub
+		mksubjdirs ${sub}_tmp
+		cp -r ${sub}_tmp/* ${sub}/
+		rm -r ${sub}_tmp
 		cd ${wd}/${sub}/mri/orig
 		mri_convert ${wd}/${sub}/anat.nii.gz ${wd}/${sub}/mri/orig/001.mgz
 		##RUN FS ON SUBJECT
