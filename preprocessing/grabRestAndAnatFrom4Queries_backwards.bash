@@ -195,6 +195,7 @@ while read subScan;do
 						cd $wd/data/$obscureName/tmpAnatRaw/*/*
 						for anatSCN in $(ls -d mr_????);do
 							echo "creating nii for Anat Scan $anatSCN"
+							cd $wd/data/$obscureName/tmpAnatRaw/*/*
 							prep_memprage $anatSCN y n #should combine echos and n3 normalize
 							cd $wd/data/$obscureName/
 							protocol=$(echo $subAnat | cut -f7 -d "#")
