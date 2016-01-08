@@ -184,11 +184,11 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
 	cat tmp_FD*.1D > FD_both.1D
 	awk '{s+=$1}END{print s/NR}' RS="\n" FD_both.1D >meanFD.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
 	if [ $tempFiles == F ];then
-		rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* seg*
-		gzip *.nii
+		rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* seg* art_*
 	else
 		echo "keeping Files"
 	fi
+	gzip *.nii
 	if [ $ART != F ];then
 		cp ../rest*_vr.nii ./
 		for restNum in $(seq 1 $numRest);do
@@ -249,6 +249,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
 	scanTRs=$(3dinfo -nv ../Wrest1.nii.gz)
 	numTotalTRs=$(expr $scanTRs \* $numRest)
 	cen=$(paste -d " " tmp_cen_*) #get Trs to censor for the all rests concatenated together
+	echo $cen > outliers_concat.1D
 	len=$(echo $cen | wc -w)
 	#expr $len + $motionReg + $comReg + 2 \* $numRest +
 	numFirstPassReg=$(expr $motionReg + $compReg + 2 )
@@ -346,7 +347,15 @@ fi
 
 ####Cleanup
 if [[ $tempFiles == F ]];then
-	rm rest* Decon*.nii.gz tmp* 0 art* c[123]*.nii.gz Wanat.nii.gz
+	cd $prepDir
+	rm rest* Decon*.nii.gz tmp* 0 art* c[123]*.nii.gz Wanat.nii.gz brainmask_2funcgrid* mWanat_warp* rest*_vr.nii.gz segment.1D seg_* seg.wm.csf.depth.nii.gz seg.wm.csf.nii.gz seg.wm.csf.resamp.nii.gz
+	cd ../
+	rm -r pc* mWanat.nii.gz bem morph mpg rgb tiff tmp src trash 
+	gzip *.nii
+	cd $surfPrepDir
+	3dcalc -a tmp/anat_Alnd_exp+orig. -expr 'a' -prefix anat_Alnd_exp.nii
+	rm -r tmp
+	gzip *.nii
 else
 	echo "keeping Files"
 fi

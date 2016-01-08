@@ -194,6 +194,7 @@ while read subScan;do
 						cd $wd/data/$obscureName/tmpAnatRaw/*/*
 						for anatSCN in $(ls -d mr_????);do
 							echo "creating nii for Anat Scan $anatSCN"
+							cd $wd/data/$obscureName/tmpAnatRaw/*/*
 							prep_memprage $anatSCN y n #should combine echos and n3 normalize
 							cd $wd/data/$obscureName/
 							protocol=$(echo $subAnat | cut -f7 -d "#")
@@ -233,7 +234,9 @@ while read subScan;do
 			echo "Scanner = $scannerCheck, Scan Age = $scanAgeCheck, Scan Date= $scanDateCheckSecs. One of these variables is causing scripts to skip over $fullTarPath"
 		fi
 	else
+		echo "##############################################################"
 		echo "Weird DOB for $obscureName, skipping a tarball, check error log in /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error"
-		echo "problem with $tarb, skipping because of DOB:$DOB" >> /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error
+		echo "$subScan" >> /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error
+		echo "##############################################################"
 	fi
 done < $wd/lists/restNoNotes_$date.hashsv
