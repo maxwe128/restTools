@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##################################prep4Uber.bash##############################
-####################### Authored by Max Elliott 1/13/2016 ####################
+####################### Authored by Max Elliott 01/13/2016 ####################
 
 ####Description
 #program to bridge between grabRestAndAnatFrom4Queries.bash and preprocess_Uber.bash
@@ -45,7 +45,7 @@ log=${scriptsDir}/LOGS/prep4Uber_${date}.LOG
 ###Check Each subject for best XX scans and make Swarm for scans that need motion Info to decide.
 cd $wd
 for sub in $(cat $subList);do
-	echo $sub
+	#echo $sub
 	cd ${wd}/${sub}
 	#check to see if this has already been run for sub
 	if [[ -d ${outDir}/${sub} ]];then
@@ -166,15 +166,22 @@ for sub in $(cat $subList);do
 			for rest2VR in $(ls ${outDir}/${sub}/tmp/restTimePoint*/rest.*);do
 				restPrefix=$(echo $rest2VR | rev |cut -d "/" -f1 | rev | cut -d "." -f-4)
 				restTimeDir=$(echo $rest2VR | rev |cut -d "/" -f2- | rev)
-				echo "cd $restTimeDir;3dcalc -a ${rest2VR}'[0]' -expr a -prefix tmp_${restPrefix}_0.nii.gz;3dcalc -a ${rest2VR}'[5..$]]' -expr a -prefix tmp_${restPrefix}_cut;3dvolreg -tshift 0 -prefix ${restPrefix}_vr.nii.gz  -1Dfile ${restPrefix}_vr_motion.1D tmp_${restPrefix}_cut+orig.;1d_tool.py -infile ${restPrefix}_vr_motion.1D -derivative -write ${restPrefix}_vr_motion_deriv.1D;1d_tool.py -infile ${restPrefix}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write FD.${restPrefix}.1D;awk '{s+=$1}END{print s/NR}' RS="\n" FD.${restPrefix}.1D > meanFD.${restPrefix}.txt" >> ${scriptsDir}/swarm.getMeanMotion_$date ##may want to put this somewhere else or make sure to delete or add to .gitignore
+				echo "cd $restTimeDir;3dcalc -a ${rest2VR}'[0]' -expr a -prefix tmp_${restPrefix}_0.nii.gz;3dcalc -a ${rest2VR}'[5..$]]' -expr a -prefix tmp_${restPrefix}_cut;3dvolreg -tshift 0 -prefix ${restPrefix}_vr.nii.gz  -1Dfile ${restPrefix}_vr_motion.1D tmp_${restPrefix}_cut+orig.;1d_tool.py -infile ${restPrefix}_vr_motion.1D -derivative -write ${restPrefix}_vr_motion_deriv.1D;1d_tool.py -infile ${restPrefix}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write FD.${restPrefix}.1D;awk '{s+=\$1 }END{print s/NR}' RS=\"\n\" FD.${restPrefix}.1D > meanFD.${restPrefix}.txt" >> ${scriptsDir}/swarm.getMeanMotion_$date ##lots of escapes to retain the ' and " that you want in the swarm file
 			done
 			numRestTot=$(ls -1 ${outDir}/${sub}/tmp/restTimePoint*/rest.* | wc -l)
 			echo "$sub has $numRestTot potentially good rest which is greater than the required $numRest numRest and will be swarmed to find best $numRest"
 		fi
 
 	fi
-done	
+done
+echo ""
+echo "########################################"
+echo "check ${scriptsDir}/LOGS/prep4Uber_${date}.* files for info on subjects that need more processing"
+echo "start by QCing scans in ${scriptsDir}/LOGS/prep4Uber_${date}.noQCedAnat, using a 1-4 rating system with 3 and 4 being scans that you are willing to use"
+echo "then rerun this script"
+echo "########################################"
 ### Run swarm if there is a swarm file, if not something is weird. Then run the script to grab best rest from each time point and select best time point after swarm is done
 
+swarm -f ${scriptsDir}/swarm.getMeanMotion_$date -g 4 -t 4 --partition nimh --time 1:00:00 --singleout
 
 
