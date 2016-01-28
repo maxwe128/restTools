@@ -165,9 +165,9 @@ while read subScan;do
 				echo "cleaning up Rest dirs"
 				rm -r $wd/data/$obscureName/tmpRestRaw
 			fi
-			if ls $wd/data/$obscureName/info.anat* 1> /dev/null 2>&1; then
-				echo "already have Anats for $obscureName"
-			else
+			#if ls $wd/data/$obscureName/info.anat* 1> /dev/null 2>&1; then
+			#	echo "already have Anats for $obscureName"
+			#else
 			###############################ME-MPRAGES#################################
 				echo "Grabbing all ME-MPRAGES for $obscureName"
 				grep $obscureName $wd/lists/anatNoNotes_$date.hashsv > $wd/lists/tmp.$obscureName.anats
@@ -229,7 +229,7 @@ while read subScan;do
 				done < $wd/lists/tmp.$obscureName.anats
 				rm $wd/lists/tmp.$obscureName.anats
 				echo "Have all ME-MPRAGES from $fullAnatTarPath"
-				fi
+				#fi
 		else
 			echo "Scanner = $scannerCheck, Scan Age = $scanAgeCheck, Scan Date= $scanDateCheckSecs. One of these variables is causing scripts to skip over $fullTarPath"
 		fi
