@@ -91,11 +91,12 @@ for sub in $(cat $subList);do
 					matchCount=$(echo "${matchCount} + 1" | bc)
 					mkdir ${outDir}/${sub}/tmp/restTimePoint${matchCount}
 					mv ${outDir}/${sub}/tmp/rest.* ${outDir}/${sub}/tmp/restTimePoint${matchCount}/ # move matching rests
+					mv ${outDir}/${sub}/tmp/info.rest.* ${outDir}/${sub}/tmp/restTimePoint${matchCount}/
 					ln -s ${wd}/${sub}/${firstRest} ${outDir}/${sub}/tmp/restTimePoint${matchCount}/ #move first rest
 					restDate=$(ls ${outDir}/${sub}/tmp/restTimePoint${matchCount}/rest.* | head -n1 | cut -d "." -f2)
 					#grab anatomical that goes with that rest Time point if there is one and it has a good QC, if not complain
 					# Anat part could be removed for Williams if you want to used unbiased surfaces and not QC
-					if ls ${wd}/${sub}/anat* 1> /dev/null 2>&1; then
+					if ls ${wd}/${sub}/anat* 1> date=20162801;mv /x/Rdrive/Max/queries/restNoNotes_20162801 /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/restWithNotes_20162801 /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatNoNotes_20162801 /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatWithNotes_20162801 /helix/data/00M_rest/lists//dev/null 2>&1; then
 						for anat in $(ls ${wd}/${sub}/anat*);do
 							shortAnat=$(echo $anat | rev | cut -d "/" -f1 | rev)
 							anatInfo=$(echo "${wd}/${sub}/info.$shortAnat" | sed 's/nii.gz/txt/g')
@@ -182,6 +183,10 @@ echo "then rerun this script"
 echo "########################################"
 ### Run swarm if there is a swarm file, if not something is weird. Then run the script to grab best rest from each time point and select best time point after swarm is done
 
-swarm -f ${scriptsDir}/swarm.getMeanMotion_$date -g 4 -t 4 --partition nimh --time 1:00:00 --singleout
+jobID=$(swarm -f ${scriptsDir}/swarm.getMeanMotion_$date -g 4 -t 4 --partition nimh --time 1:00:00 --singleout)
+echo "waiting for motion Check swarm to finish, then will make plots" 
+sbatch --dependency=afterany:$jobID --partition nimh sbatchCall.makeMotionQCplots.${timeID}
+
+#make Sublist of subjects who were in swarm, then call a batch file below with this bash ${scriptsDir}/grabRestAndAnatFrom4Queries.bash in it
 
 

@@ -18,7 +18,18 @@ numRest=$2
 outDir=$3
 
 for sub in $(cat $subList);do
-	cd ${outDir}/${sub}
+	cd ${outDir}/${sub}/${tmp}
+	for timePoint in $(ls -d restTimePoint*);do
+		bestMean=999999999
+		##Make sortable file with rest motion info
+		for scan in $(ls ${timePoint}/meanFD*);do
+			mean=$(cat ${timePoint}/${scan})
+			echo "${scan},${mean}" >> ${timePoint}/meanFile_${timePoint}
+		done
+		#grab best $numRest per time point
+		sort --field-separator=',' --key=2 ${timePoint}/meanFile_${timePoint} | tail -n${numRest} > ${timePoint}/bestScans_${timePoint}
+		bestMean=$(cut -d "," -f2 ${timePoint}/bestScans_${timePoint} | awk '{s+=$1 }END{print s/NR}' RS="\n")
+		echo "${timePoint},${bestMean}" >> timeMeans
 	######Psuedo Code because I am on a train to New Haven
 	#probably need to write scan name and FD to each file and use cut and sort to keep info together so you can mv the right file
 	#for timePoint in ls -d timePoints
@@ -27,7 +38,16 @@ for sub in $(cat $subList);do
 	#Awk average command all the timepoint files | sort | tail -n1 to find timePoint with best motion
 	#mv $best X scans in best TimePoint to outDir, mv info files
 	#rm -r tmp subDirs
+		
+	done
 done
-
-	
+bestTimePoint=$(sort --field-separator=',' --key=2 timeMeans | head -n1 | cut -d "," -f1)
+#look up best scans from best timePoint and move them along with the anat
+count=1
+for rest in $(cut -d "," -f1 ${bestTimePoint}/bestScans_${timePoint} | cut -d "." -f2-5);do
+	mv ${bestTimePoint}/${rest}.nii.gz ${outDir}/${sub}/rest${count}.nii.gz
+	mv ${bestTimePoint}/info.${rest}.txt {outDir}/${sub}/info.rest${count}.txt
+done
+mv ${bestTimePoint}/anat.*.nii.gz ${outDir}/${sub}/anat.nii.gz
+rm -r {outDir}/${sub}/tmp
 #after above is run you should have $numRest rest scans and best anat in each file
