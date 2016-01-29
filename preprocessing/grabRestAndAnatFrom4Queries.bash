@@ -188,6 +188,7 @@ while read subScan;do
 					scanAge=$(echo "$(( ($(date --date="$scanDate" +%s) - $(date --date="$DOB" +%s) )/(60*60*24) ))/365" | bc -l)
 					if ls $wd/data/$obscureName/info.anat.$scanDateCheck.$scanExamCheck.* 1> /dev/null 2>&1; then
 						echo "already have $fullAnatTarPath ME-MPRAGES"
+						cd $wd/data/$obscureName
 						rm -r $wd/data/$obscureName/tmpAnatRaw
 					else
 						echo "untarring $fullAnatTarPath"
@@ -222,13 +223,12 @@ while read subScan;do
 							echo "scanNotes=$scanNotes" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "QC=" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							cd $wd/data/$obscureName/
-							rm -r $wd/data/$obscureName/tmpAnatRaw
 						done
 						cd $wd/data/$obscureName/
 						echo "cleaning up anat dirs"
+						rm -r $wd/data/$obscureName/tmpAnatRaw
 						gzip $wd/data/$obscureName/*.nii
 					fi
-					rm -r $wd/data/$obscureName/tmpAnatRaw
 				done < $wd/lists/tmp.$obscureName.anats
 				rm $wd/lists/tmp.$obscureName.anats
 				echo "Have all ME-MPRAGES from $fullAnatTarPath"
