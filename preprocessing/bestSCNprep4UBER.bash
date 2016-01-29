@@ -30,15 +30,6 @@ for sub in $(cat $subList);do
 		sort --field-separator=',' --key=2 ${timePoint}/meanFile_${timePoint} | tail -n${numRest} > ${timePoint}/bestScans_${timePoint}
 		bestMean=$(cut -d "," -f2 ${timePoint}/bestScans_${timePoint} | awk '{s+=$1 }END{print s/NR}' RS="\n")
 		echo "${timePoint},${bestMean}" >> timeMeans
-	######Psuedo Code because I am on a train to New Haven
-	#probably need to write scan name and FD to each file and use cut and sort to keep info together so you can mv the right file
-	#for timePoint in ls -d timePoints
-		#cat meanFDsPerTimePoint | sort | tail -n${numRest} > fileInTimePoint #grab best x scans 
-	#done
-	#Awk average command all the timepoint files | sort | tail -n1 to find timePoint with best motion
-	#mv $best X scans in best TimePoint to outDir, mv info files
-	#rm -r tmp subDirs
-		
 	done
 done
 bestTimePoint=$(sort --field-separator=',' --key=2 timeMeans | head -n1 | cut -d "," -f1)
