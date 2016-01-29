@@ -19,7 +19,7 @@ outDir=$3
 
 for sub in $(cat $subList);do
 	cd ${outDir}/${sub}/${tmp}
-	for timePoint in $(ls -d restTimePoint*);do
+	for timePoint in $(ls -d ${outDir}/${sub}/${tmp}/restTimePoint*);do
 		bestMean=999999999
 		##Make sortable file with rest motion info
 		for scan in $(ls ${timePoint}/meanFD*);do
