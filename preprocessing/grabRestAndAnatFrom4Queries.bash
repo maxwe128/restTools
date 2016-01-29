@@ -172,7 +172,7 @@ while read subScan;do
 				echo "Grabbing all ME-MPRAGES for $obscureName"
 				grep $obscureName $wd/lists/anatNoNotes_$date.hashsv > $wd/lists/tmp.$obscureName.anats
 				while read subAnat;do
-					mkdir $wd/data/$obscureName/tmpAnatRaw
+					mkdir -p $wd/data/$obscureName/tmpAnatRaw
 					cd $wd/data/$obscureName/tmpAnatRaw
 					anatTarb=$(echo $subAnat | cut -f11 -d "#")	
 					fullAnatTarPath=$(echo "$anatTarb" | tr -d '\r')
@@ -223,9 +223,9 @@ while read subScan;do
 						done
 						cd $wd/data/$obscureName/
 						echo "cleaning up anat dirs"
-						rm -r $wd/data/$obscureName/tmpAnatRaw
 						gzip $wd/data/$obscureName/*.nii
 					fi
+					rm -r $wd/data/$obscureName/tmpAnatRaw
 				done < $wd/lists/tmp.$obscureName.anats
 				rm $wd/lists/tmp.$obscureName.anats
 				echo "Have all ME-MPRAGES from $fullAnatTarPath"
