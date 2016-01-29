@@ -172,8 +172,9 @@ while read subScan;do
 				echo "Grabbing all ME-MPRAGES for $obscureName"
 				grep $obscureName $wd/lists/anatNoNotes_$date.hashsv > $wd/lists/tmp.$obscureName.anats
 				while read subAnat;do
-					mkdir -p $wd/data/$obscureName/tmpAnatRaw
-					cd $wd/data/$obscureName/tmpAnatRaw
+					cd $wd/data/$obscureName
+					mkdir tmpAnatRaw
+					cd tmpAnatRaw
 					anatTarb=$(echo $subAnat | cut -f11 -d "#")	
 					fullAnatTarPath=$(echo "$anatTarb" | tr -d '\r')
 					fullAnatTarPath=$(echo "$fullAnatTarPath" | sed 's@\\r@@g')
@@ -187,6 +188,7 @@ while read subScan;do
 					scanAge=$(echo "$(( ($(date --date="$scanDate" +%s) - $(date --date="$DOB" +%s) )/(60*60*24) ))/365" | bc -l)
 					if ls $wd/data/$obscureName/info.anat.$scanDateCheck.$scanExamCheck.* 1> /dev/null 2>&1; then
 						echo "already have $fullAnatTarPath ME-MPRAGES"
+						rm -r $wd/data/$obscureName/tmpAnatRaw
 					else
 						echo "untarring $fullAnatTarPath"
 						tar -zxf $fullAnatTarPath --wildcards --no-anchored 'sagittal_anat_me_mp_rage_1_mm*' ####Double check, doesnt like $fullTarPath
@@ -220,6 +222,7 @@ while read subScan;do
 							echo "scanNotes=$scanNotes" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "QC=" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							cd $wd/data/$obscureName/
+							rm -r $wd/data/$obscureName/tmpAnatRaw
 						done
 						cd $wd/data/$obscureName/
 						echo "cleaning up anat dirs"
