@@ -184,6 +184,8 @@ echo "########################################"
 ### Run swarm if there is a swarm file, if not something is weird. Then run the script to grab best rest from each time point and select best time point after swarm is done
 
 jobID=$(swarm -f ${scriptsDir}/swarm.getMeanMotion_$date -g 4 -t 4 --partition nimh --time 1:00:00 --singleout)
+
+cat ${scriptsDir}/swarm.getMeanMotion_$date | cut -d "/" -f7 | uniq > ${scriptsDir}/bestSCN
 echo "waiting for motion Check swarm to finish, then will make plots" 
 sbatch --dependency=afterany:$jobID --partition nimh sbatchCall.makeMotionQCplots.${timeID}
 
