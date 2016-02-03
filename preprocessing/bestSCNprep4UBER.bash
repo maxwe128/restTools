@@ -32,20 +32,19 @@ for sub in $(cat $subList);do
 		sort --field-separator=',' --key=2 ${timePoint}/meanFile_${shortTime} | tail -n${numRest} > ${timePoint}/bestScans_${shortTime}
 		echo "2"
 		bestMean=$(cut -d "," -f2 ${timePoint}/bestScans_${shortTime} | awk '{s+=$1 }END{print s/NR}' RS="\n")
-		echo "${shortTime},${bestMean}" >> ${outDir}/${sub}/${tmp}/timeMeans
+		echo "${shortTime},${bestMean}" >> ${outDir}/${sub}/tmp/timeMeans
 	done
 	echo "3"
 	bestTimePoint=$(sort --field-separator="," --key=2 ${outDir}/${sub}/tmp/timeMeans | head -n1 | cut -d "," -f1)
 	#look up best scans from best timePoint and move them along with the anat
 	count=1
 	for rest in $(cut -d "," -f1 ${outDir}/${sub}/tmp/${bestTimePoint}/bestScans_${bestTimePoint} | cut -d "." -f2-5);do
-		mv ${bestTimePoint}/${rest}.nii.gz ${outDir}/${sub}/rest${count}.nii.gz
-		mv ${bestTimePoint}/info.${rest}.txt ${outDir}/${sub}/info.rest${count}.txt
+		mv ${outDir}/${sub}/tmp/${bestTimePoint}/${rest}.nii.gz ${outDir}/${sub}/rest${count}.nii.gz
+		mv ${outDir}/${sub}/tmp/${bestTimePoint}/info.${rest}.txt ${outDir}/${sub}/info.rest${count}.txt
+		count=$(echo "${count} + 1" | bc)
 	done
-	mv ${bestTimePoint}/anat.*.nii.gz ${outDir}/${sub}/anat.nii.gz
+	mv ${outDir}/${sub}/tmp/${bestTimePoint}/anat.*.nii.gz ${outDir}/${sub}/anat.nii.gz
+	mv ${outDir}/${sub}/tmp/${bestTimePoint}/info.anat* ${outDir}/${sub}/info.anat.txt
+	rm -r ${outDir}/${sub}/tmp
 done
-#rm -r {outDir}/${sub}/tmp
 #after above is run you should have $numRest rest scans and best anat in each file
-
-
-####Problem is with variable naming and referencing, should be an easy fix I am just beat. timeMeans is weird and you need to figure out what is supposed to be hear and where you want it.

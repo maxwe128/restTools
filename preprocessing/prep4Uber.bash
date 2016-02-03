@@ -44,6 +44,10 @@ log=${scriptsDir}/LOGS/prep4Uber_${date}.LOG
 
 ###Check Each subject for best XX scans and make Swarm for scans that need motion Info to decide.
 cd $wd
+#clean up swarm file so that you don't run more than you want
+if [[ -f ${scriptsDir}/swarm.getMeanMotion_$date ]];then
+	rm ${scriptsDir}/swarm.getMeanMotion_$date
+fi
 for sub in $(cat $subList);do
 	#echo $sub
 	cd ${wd}/${sub}
@@ -68,6 +72,7 @@ for sub in $(cat $subList);do
 			if [[ $qcCheck == 3 ]] || [[ $qcCheck == 4 ]] || [[ $qcCheck == $nothing ]];then ##Allows for the case where you didnt QC scans(might be dangerous)
 				if [[ $qcCheck == $nothing ]];then
 					echo "WARNING: ${wd}/${sub}/$firstRest is not QCed, Assuming that it is okay for preprocessing. You might want to double check this. WARNING"
+					echo "${wd}/${sub}/$firstRest" >>  ${scriptsDir}/LOGS/prep4Uber_${date}.noQCedRest
 				fi
 				#Loop through all of subjects scans to find sets that were collected close to each other				
 				tail -n+2 ${outDir}/${sub}/tmp/restList > ${outDir}/${sub}/tmp/dateCheck
@@ -91,12 +96,12 @@ for sub in $(cat $subList);do
 					matchCount=$(echo "${matchCount} + 1" | bc)
 					mkdir ${outDir}/${sub}/tmp/restTimePoint${matchCount}
 					mv ${outDir}/${sub}/tmp/rest.* ${outDir}/${sub}/tmp/restTimePoint${matchCount}/ # move matching rests
-					mv ${outDir}/${sub}/tmp/info.rest.* ${outDir}/${sub}/tmp/restTimePoint${matchCount}/
+					#mv ${outDir}/${sub}/tmp/info.rest* ${outDir}/${sub}/tmp/restTimePoint${matchCount}/
 					ln -s ${wd}/${sub}/${firstRest} ${outDir}/${sub}/tmp/restTimePoint${matchCount}/ #move first rest
 					restDate=$(ls ${outDir}/${sub}/tmp/restTimePoint${matchCount}/rest.* | head -n1 | cut -d "." -f2)
 					#grab anatomical that goes with that rest Time point if there is one and it has a good QC, if not complain
 					# Anat part could be removed for Williams if you want to used unbiased surfaces and not QC
-					if ls ${wd}/${sub}/anat* 1> date=20162801;mv /x/Rdrive/Max/queries/restNoNotes_20162801 /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/restWithNotes_20162801 /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatNoNotes_20162801 /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatWithNotes_20162801 /helix/data/00M_rest/lists//dev/null 2>&1; then
+					if ls ${wd}/${sub}/anat* 1> /dev/null 2>&1; then
 						for anat in $(ls ${wd}/${sub}/anat*);do
 							shortAnat=$(echo $anat | rev | cut -d "/" -f1 | rev)
 							anatInfo=$(echo "${wd}/${sub}/info.$shortAnat" | sed 's/nii.gz/txt/g')
@@ -147,6 +152,7 @@ for sub in $(cat $subList);do
 		if [[ $matchCount == 0 ]];then
 			echo "WARNING: no good rest data or no good Anat found for $sub WARNING"
 			echo $sub >> ${scriptsDir}/LOGS/prep4Uber_${date}.noGoodRestOrAnat
+			rm -r ${outDir}/${sub}
 		elif [[ $matchCount == 1 ]] && [[ $numRestFound1 == $numRest ]];then
 			anat=$(ls ${outDir}/${sub}/tmp/restTimePoint${matchCount}/anat.* | rev | cut -d "/" -f1 | rev)
 			anatInfo=$(echo "info.$anat" | sed 's/nii.gz/txt/g')
@@ -164,10 +170,18 @@ for sub in $(cat $subList);do
 			echo "$sub has exactly $numRest good rest and a matching Anat and is ready for preprocess_UBER"
 		else
 			###Set up swarm file to get motion params for every rest
+			for anat in $(ls ${outDir}/${sub}/tmp/restTimePoint*/anat*);do
+				anatTemp=$(echo "$anat" | rev | cut -d "/" -f1 | rev | sed 's/nii.gz/txt/g')
+				anatInfo=$(echo "info.$anatTemp")
+				anatDir=$(echo "$anat" | rev | cut -d "/" -f2- | rev)
+				ln -s ${wd}/${sub}/${anatInfo} ${anatDir}/${anatInfo}
+			done
 			for rest2VR in $(ls ${outDir}/${sub}/tmp/restTimePoint*/rest.*);do
 				restPrefix=$(echo $rest2VR | rev |cut -d "/" -f1 | rev | cut -d "." -f-4)
+				shortRest=$(echo $rest2VR | rev | cut -d "/" -f1 | rev)
 				restTimeDir=$(echo $rest2VR | rev |cut -d "/" -f2- | rev)
-				echo "cd $restTimeDir;3dcalc -a ${rest2VR}'[0]' -expr a -prefix tmp_${restPrefix}_0.nii.gz;3dcalc -a ${rest2VR}'[5..$]]' -expr a -prefix tmp_${restPrefix}_cut;3dvolreg -tshift 0 -prefix ${restPrefix}_vr.nii.gz  -1Dfile ${restPrefix}_vr_motion.1D tmp_${restPrefix}_cut+orig.;1d_tool.py -infile ${restPrefix}_vr_motion.1D -derivative -write ${restPrefix}_vr_motion_deriv.1D;1d_tool.py -infile ${restPrefix}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write FD.${restPrefix}.1D;awk '{s+=\$1 }END{print s/NR}' RS=\"\n\" FD.${restPrefix}.1D > meanFD.${restPrefix}.txt" >> ${scriptsDir}/swarm.getMeanMotion_$date ##lots of escapes to retain the ' and " that you want in the swarm file
+				restInfo=$(echo "info.$shortRest" | sed 's/nii.gz/txt/g')
+				echo "cd $restTimeDir;ln -s ${wd}/${sub}/${restInfo} ${restTimeDir}/${restInfo};3dcalc -a ${rest2VR}'[0]' -expr a -prefix tmp_${restPrefix}_0.nii.gz;3dcalc -a ${rest2VR}'[5..$]]' -expr a -prefix tmp_${restPrefix}_cut;3dvolreg -tshift 0 -prefix ${restPrefix}_vr.nii.gz  -1Dfile ${restPrefix}_vr_motion.1D tmp_${restPrefix}_cut+orig.;1d_tool.py -infile ${restPrefix}_vr_motion.1D -derivative -write ${restPrefix}_vr_motion_deriv.1D;1d_tool.py -infile ${restPrefix}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write FD.${restPrefix}.1D;awk '{s+=\$1 }END{print s/NR}' RS=\"\n\" FD.${restPrefix}.1D > meanFD.${restPrefix}.txt" >> ${scriptsDir}/swarm.getMeanMotion_${date} ##lots of escapes to retain the ' and " that you want in the swarm file
 			done
 			numRestTot=$(ls -1 ${outDir}/${sub}/tmp/restTimePoint*/rest.* | wc -l)
 			echo "$sub has $numRestTot potentially good rest which is greater than the required $numRest numRest and will be swarmed to find best $numRest"
@@ -179,15 +193,20 @@ echo ""
 echo "########################################"
 echo "check ${scriptsDir}/LOGS/prep4Uber_${date}.* files for info on subjects that need more processing"
 echo "start by QCing scans in ${scriptsDir}/LOGS/prep4Uber_${date}.noQCedAnat, using a 1-4 rating system with 3 and 4 being scans that you are willing to use"
+echo "Also make sure that scans in ${scriptsDir}/LOGS/prep4Uber_${date}.noQCedRest, are useable and then add QC to info.rest file using a 1-4 rating system with 3 and 4 being scans that you are willing to use"
 echo "then rerun this script"
 echo "########################################"
 ### Run swarm if there is a swarm file, if not something is weird. Then run the script to grab best rest from each time point and select best time point after swarm is done
+echo "running swarm command:"
+echo "swarm -f ${scriptsDir}/swarm.getMeanMotion_$date -g 2 --partition nimh --time 1:00:00 --singleout"
 
-jobID=$(swarm -f ${scriptsDir}/swarm.getMeanMotion_$date -g 4 -t 4 --partition nimh --time 1:00:00 --singleout)
+cat ${scriptsDir}/swarm.getMeanMotion_$date | cut -d "/" -f7 | uniq > ${scriptsDir}/bestSCNlist_$date
+echo "#!/bin/bash" > ${scriptsDir}/sbatchCall.prep4Uber_$date
+echo "bash ${scriptsDir}/bestSCNprep4UBER.bash ${scriptsDir}/bestSCNlist_$date $numRest $outDir" >> ${scriptsDir}/sbatchCall.prep4Uber_${date}
 
-cat ${scriptsDir}/swarm.getMeanMotion_$date | cut -d "/" -f7 | uniq > ${scriptsDir}/bestSCN
-echo "waiting for motion Check swarm to finish, then will make plots" 
-sbatch --dependency=afterany:$jobID --partition nimh sbatchCall.makeMotionQCplots.${timeID}
+jobID=$(swarm -f ${scriptsDir}/swarm.getMeanMotion_$date -g 2 --partition nimh --time 1:00:00 --logdir ${scriptsDir}/LOGS)
+echo "Waiting for swarm to finish, then will batch run the last organizational step: bestSCNprep4UBER.bash" 
+sbatch --dependency=afterany:$jobID --partition nimh ${scriptsDir}/sbatchCall.prep4Uber_${date}
 
 #make Sublist of subjects who were in swarm, then call a batch file below with this bash ${scriptsDir}/grabRestAndAnatFrom4Queries.bash in it
 
