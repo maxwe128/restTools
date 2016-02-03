@@ -22,6 +22,10 @@
 #5)output directory where preprocess Uber will be run, Should be same as WD input to preprocess_Uber. a directory will be made here for each subject
 
 
+#Example
+#bash prep4Uber.bash /data/elliottml/00M_rest/lists/test1Sub 2 10 /data/elliottml/00M_rest/data/ /data/elliottml/00M_rest/prep/
+
+
 ####Future Directions
 #adapt for Patient processing by finding best patient scans and then finding healthy scans that match on age and sex
 #adapt for longitudinal processing 
