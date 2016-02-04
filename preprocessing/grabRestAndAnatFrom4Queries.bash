@@ -10,7 +10,7 @@
 
 
 date=$(date +"%Y%d%m")
-queryToRun="date=$(date +"%Y%d%m");sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_nonotes_20151202.txt /x/Rdrive/Max/queries/restNoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_withnotes_20151202.sql /x/Rdrive/Max/queries/restWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/anatnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/anatWithNotes_$date"
+queryToRun="date=$(date +"%Y%d%m");sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_nonotes_20151202.txt /x/Rdrive/Max/queries/restNoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_withnotes_20151202.sql /x/Rdrive/Max/queries/restWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/anatnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/anatWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEwithNotes_$date"
 wd=/helix/data/00M_rest
 cd $wd
 if [[ ! -f /helix/data/00M_rest/lists/restNoNotes_$date ]];then
@@ -128,7 +128,7 @@ while read subScan;do
 					scanExam=$(echo $fullTarPath | cut -d "." -f2 | cut -d "_" -f2 | sed 's/exam//g')
 					scanAge=$(echo "$(( ($(date --date="$scanDate" +%s) - $(date --date="$DOB" +%s) )/(60*60*24) ))/365" | bc -l)
 					cd $wd/data/$obscureName/tmpRestRaw/*/*/$rstSCN
-					scanSeries=$(echo $rstSCN | sed 's/mr_//g' | sed 's/0//g')
+					scanSeries=$(echo $rstSCN | sed 's/mr_//g' | sed 's/^0*//')
 					echo "creating nii for Rest Scan series $scanSeries"
 					mri_convert --in_type dicom --out_type nii fmri_rest_32ch-00001.dcm rest.$scanDate.$scanExam.$scanSeries.nii
 					numTRs=$(3dinfo -nv rest.$scanDate.$scanExam.$scanSeries.nii)
@@ -241,5 +241,73 @@ while read subScan;do
 		echo "Weird DOB for $obscureName, skipping a tarball, check error log in /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error"
 		echo "$subScan" >> /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error
 		echo "##############################################################"
+	fi
+done < $wd/lists/restNoNotes_$date.hashsv
+
+
+####Update info files in case notes, etc. have been updated since this was last run. Currently this only updates the subject info files, not the scan info files. I think this is better
+echo "#######################################################"
+echo "updating all subjects info files to reflect newest info"
+echo "#######################################################"
+while read subScan;do
+	race=$(echo $subScan | cut -f4 -d "#")
+	diagnoses=$(echo $subScan | cut -f6 -d "#")
+	onPlatelist=$(echo $subScan | cut -f14 -d "#")
+	FDOPA=$(echo $subScan | cut -f17 -d "#")
+	Fally=$(echo $subScan | cut -f19 -d "#")
+	NNC=$(echo $subScan | cut -f18 -d "#")
+	sex=$(echo $subScan | cut -f20 -d "#")
+	subNotes=$(echo $subScan | cut -f5 -d "#")
+	tarb=$(echo $subScan | cut -f11 -d "#")
+	familyNum=$(echo $subScan | cut -f3 -d "#")
+	exclude=$(echo $subScan | cut -f13 -d "#")
+	eganNotes=$(echo $subScan | cut -f15 -d "#")
+	medicalRuleOut=$(echo $subScan | cut -f16 -d "#")
+	DOBtmp=$(echo $subScan | cut -f12 -d "#")
+	year=$(echo $DOBtmp | cut -d "/" -f1)
+	month=$(echo $DOBtmp | cut -d "/" -f2)
+	day=$(echo $DOBtmp | cut -d "/" -f3)
+	obscureName=$(echo $tarb | cut -d "." -f1 | rev | cut -d "/" -f1 | rev)
+	mLen=${#month}
+	dLen=${#day}
+	if [ "$mLen" -ne "2" ];then
+		month=$(echo "0$month")
+	fi
+	if [ "$dLen" -ne "2" ];then
+		day=$(echo "0$day")
+	fi
+	DOB=$(echo "$year$month$day")
+	DOBlen=${#DOB}
+	if [[ $DOBlen -eq 8 ]];then
+		fullTarPath=$(echo "$tarb" | tr -d '\r') #hopefully sed gets rid of \r issues
+		scanAgeCheck=$(echo "$(( ($(date --date="$scanDate" +%s) - $(date --date="$DOB" +%s) )/(60*60*24) ))/365" | bc -l) #trying to avoid anat and rest variable confusion
+		scannerCheck=$(echo $fullTarPath | cut -d "." -f3) 
+		scanExamCheck=$(echo $fullTarPath | cut -d "." -f2 | cut -d "_" -f2 | sed 's/exam//g')
+		scanDatetmpCheck=$(echo $fullTarPath | cut -d "." -f2 | cut -d "_" -f1) # need to get into monthdayyear format
+		scanMonthDayCheck=$(echo ${scanDatetmpCheck:0:4})
+		scanYearCheck=$(echo ${scanDatetmpCheck:4:2})
+		scanDateCheck=$(echo "20$scanYearCheck$scanMonthDayCheck")
+		scanDateCheckSecs=$(date --date="$scanDateCheck" +%s)
+		if [[ $scannerCheck == "mr750" ]] && [[ $scanDateCheckSecs -gt 1310702400 ]];then # last check is because first 2 chronological rest scans were for testing and throw off script
+			if [[ -f $wd/data/$obscureName/info.$obscureName.txt ]];then
+				#####Setting up info.$obscureName file, allows you to keep track of subScanjects scans and info better. Set up so 
+				#####"grep "demInfo" | cut -d "=" -f2" will get you the information you need
+				rm $wd/data/$obscureName/info.$obscureName.txt
+				echo "ObscureName=$obscureName" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "Diagnoses=$diagnoses" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "OnPlatelist=$onPlatelist" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "FDOPA=$FDOPA" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "Fallypride=$Fally" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "NNC=$NNC" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "DOB=$DOB" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "race=$race" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "sex=$sex" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "subNotes=$subNotes" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "eganNotes=$eganNotes" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "exclude=$exclude" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "medicalRuleOut=$medicalRuleOut" >> $wd/data/$obscureName/info.$obscureName.txt
+				echo "familyNum=$familyNum" >> $wd/data/$obscureName/info.$obscureName.txt
+			fi
+		fi
 	fi
 done < $wd/lists/restNoNotes_$date.hashsv
