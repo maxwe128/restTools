@@ -8,6 +8,11 @@
 #4) Allow this to check for new anats even if rest scan is already downloaded (may not be necessary because new anats should be somewhat paired with new rests)
 
 
+###Dependencies
+#/cbdb/bin/n3_normalize
+#/cbdb/bin//prep_memprage
+
+
 
 date=$(date +"%Y%d%m")
 queryToRun="date=$(date +"%Y%d%m");sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_nonotes_20151202.txt /x/Rdrive/Max/queries/restNoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_withnotes_20151202.sql /x/Rdrive/Max/queries/restWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/anatnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/anatWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEwithNotes_$date"
@@ -24,7 +29,7 @@ if [[ ! -f /helix/data/00M_rest/lists/restNoNotes_$date ]];then
 	echo ""
 	echo "then run this as yourself:"
 	echo "
-	date=$(date +"%Y%d%m");mv /x/Rdrive/Max/queries/restNoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/restWithNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatNoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatWithNotes_$date /helix/data/00M_rest/lists/
+	date=$(date +"%Y%d%m");mv /x/Rdrive/Max/queries/restNoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/restWithNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatNoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatWithNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/MPRAGEnoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/MPRAGEwithNotes_$date /helix/data/00M_rest/lists/
 	"
 	exit
 fi
@@ -35,9 +40,11 @@ restNoNotesCheck=$(grep "#" /helix/data/00M_rest/lists/restNoNotes_$date | wc -l
 restWithNotesCheck=$(grep "#" /helix/data/00M_rest/lists/restWithNotes_$date | wc -l)
 anatNoNotesCheck=$(grep "#" /helix/data/00M_rest/lists/anatNoNotes_$date | wc -l)
 anatWithNotesCheck=$(grep "#" /helix/data/00M_rest/lists/anatWithNotes_$date | wc -l)
-if [[ $restNoNotesCheck -gt 0 ]] || [[ $restWithNotesCheck -gt 0 ]] || [[ $anatNoNotesCheck -gt 0 ]] || [[ $anatWithNotesCheck -gt 0 ]];then
+MPRAGENoNotesCheck=$(grep "#" /helix/data/00M_rest/lists/MPRAGEnoNotes_$date | wc -l)
+MPRAGEWithNotesCheck=$(grep "#" /helix/data/00M_rest/lists/MPRAGEwithNotes_$date | wc -l)
+if [[ $restNoNotesCheck -gt 0 ]] || [[ $restWithNotesCheck -gt 0 ]] || [[ $anatNoNotesCheck -gt 0 ]] || [[ $anatWithNotesCheck -gt 0 ]] || [[ $MPRAGENoNotesCheck -gt 0 ]] || [[ $MPRAGEWithNotesCheck -gt 0 ]];then
 	echo "there is a # in one of the queries, this is a problem because this script uses #s for delimeters"
-	echo " run grep "#" /helix/data/00M_rest/lists/restNoNotes_$date;grep "#" /helix/data/00M_rest/lists/restWithNotes_$date;grep "#" /helix/data/00M_rest/lists/anatNoNotes_$date | wc -l;grep "#" /helix/data/00M_rest/lists/anatWithNotes_$date | wc -l"
+	echo " run grep "#" /helix/data/00M_rest/lists/restNoNotes_$date;grep "#" /helix/data/00M_rest/lists/restWithNotes_$date;grep "#" /helix/data/00M_rest/lists/anatNoNotes_$date | wc -l;grep "#" /helix/data/00M_rest/lists/anatWithNotes_$date | wc -l;grep "#" /helix/data/00M_rest/lists/MPRAGEnoNotes_$date | wc -l;grep "#" /helix/data/00M_rest/lists/MPRAGEwithNotes_$date | wc -l"
 	echo "then consider removing the # from the file that returns a result, otherwith you need to edit this script so it uses a smarter delimeter than Max could think of"
 	exit
 fi
@@ -46,6 +53,8 @@ cat /helix/data/00M_rest/lists/restNoNotes_$date | sed 's/"//g' | tail -n +3 | s
 cat /helix/data/00M_rest/lists/restWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/restWithNotes_$date.hashsv
 cat /helix/data/00M_rest/lists/anatNoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatNoNotes_$date.hashsv
 cat /helix/data/00M_rest/lists/anatWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatWithNotes_$date.hashsv
+cat /helix/data/00M_rest/lists/MPRAGEnoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/MPRAGEnoNotes_$date.hashsv
+cat /helix/data/00M_rest/lists/MPRAGEwithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/MPRAGEwithNotes_$date.hashsv
 while read subScan;do
 	race=$(echo $subScan | cut -f4 -d "#")
 	diagnoses=$(echo $subScan | cut -f6 -d "#")
@@ -165,7 +174,7 @@ while read subScan;do
 				echo "cleaning up Rest dirs"
 				rm -r $wd/data/$obscureName/tmpRestRaw
 			fi
-			#if ls $wd/data/$obscureName/info.anat* 1> /dev/null 2>&1; then
+			#if ls $wd/data/$obscureName//cbdb/bin//prep_memprageinfo.anat* 1> /dev/null 2>&1; then
 			#	echo "already have Anats for $obscureName"
 			#else
 			###############################ME-MPRAGES#################################
@@ -193,7 +202,7 @@ while read subScan;do
 					else
 						echo "untarring $fullAnatTarPath"
 						tar -zxf $fullAnatTarPath --wildcards --no-anchored 'sagittal_anat_me_mp_rage_1_mm*' ####Double check, doesnt like $fullTarPath
-						scanType="ANAT.3TC.32CH"
+						scanType="MEMPRAGE.3TC.32CH"
 						cd $wd/data/$obscureName/tmpAnatRaw/*/*
 						for anatSCN in $(ls -d mr_????);do
 							echo "creating nii for Anat Scan $anatSCN"
@@ -218,7 +227,7 @@ while read subScan;do
 							echo "SCANTYPE=$scanType" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "scanSeries=$scanSeries" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "scanAge=$scanAge" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
-							echo "scanName=$wd/data/$obscureName/anat.$scanDate.$scanExam.$scanSeries.nii" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+							echo "scanName=$wd/data/$obscureName/anat.$scanDate.$scanExam.$scanSeries.nii" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt/cbdb/bin//prep_memprage
 							echo "numTRs=$numTRs" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "scanNotes=$scanNotes" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "QC=" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
@@ -311,3 +320,78 @@ while read subScan;do
 		fi
 	fi
 done < $wd/lists/restNoNotes_$date.hashsv
+
+echo "##############################################################################"
+echo "Checking to see if any subjects are missing ME-MPRAGES and need MPRAGE instead"
+echo "##############################################################################"
+
+cd $wd/data/
+for subj in $(ls -d *);do
+	numMEMPRAGE=0
+	numMEMPRAGE=$(grep SCANTYPE=MEMPRAGE.3TC $wd/data/${subj}/info.anat* | wc -l)
+	if [[ $numMEMPRAGE -lt 1 ]];then
+		echo "grabbing MPRAGES for $subj"
+		grep $subj $wd/lists/MPRAGEnoNotes_$date.hashsv > $wd/lists/tmp.$subj.MPRAGE
+		while read subMPRAGE;do
+			cd $wd/data/$subj
+			mkdir tmpAnatRaw
+			cd tmpAnatRaw
+			anatTarb=$(echo $subMPRAGE | cut -f11 -d "#")	
+			fullAnatTarPath=$(echo "$anatTarb" | tr -d '\r')
+			fullAnatTarPath=$(echo "$fullAnatTarPath" | sed 's@\\r@@g')
+			scanDatetmp=$(echo $fullAnatTarPath | cut -d "." -f2 | cut -d "_" -f1) # need to get into monthdayyear format
+			scanMonthDay=$(echo ${scanDatetmp:0:4})
+			scanYear=$(echo ${scanDatetmp:4:2})
+			scanDateCheck=$(echo "20$scanYear$scanMonthDay")
+			scanExamCheck=$(echo $fullAnatTarPath | cut -d "." -f2 | cut -d "_" -f2 | sed 's/exam//g')
+			obscureName=$(echo $fullAnatTarPath | cut -d "." -f1 | rev | cut -d "/" -f1 | rev)
+			DOB=$(grep DOB $wd/data/${subj}/info.$obscureName.txt | cut -d "=" -f2)
+			scanAge=$(echo "$(( ($(date --date="$scanDate" +%s) - $(date --date="$DOB" +%s) )/(60*60*24) ))/365" | bc -l)
+			if ls ${wd}/data/${subj}/info.anat.$scanDateCheck.$scanExamCheck.* 1> /dev/null 2>&1; then
+				echo "already have $fullAnatTarPath MPRAGES"
+				cd ${wd}/data/$subj
+				rm -r ${wd}/data/${subj}/tmpAnatRaw
+			else
+				echo "untarring $fullAnatTarPath"
+				tar -zxf $fullAnatTarPath --wildcards --no-anchored 'sagittal_anat_mp_rage_1_mm*'
+				scanType="MPRAGE.3TC.32CH"
+				cd $wd/data/${subj}/tmpAnatRaw/*/*
+				for anatSCN in $(ls -d mr_????);do
+					echo "creating nii for Anat Scan $anatSCN"
+					cd $wd/data/${subj}/tmpAnatRaw/*/*/$anatSCN
+					protocol=$(echo $subMPRAGE | cut -f7 -d "#")
+					scanner=$(echo $fullAnatTarPath | cut -d "." -f3)
+					scanDatetmp=$(echo $fullAnatTarPath | cut -d "." -f2 | cut -d "_" -f1) # need to get into monthdayyear format
+					scanMonthDay=$(echo ${scanDatetmp:0:4})
+					scanYear=$(echo ${scanDatetmp:4:2})
+					scanDate=$(echo "20$scanYear$scanMonthDay")
+					scanExam=$(echo $fullAnatTarPath | cut -d "." -f2 | cut -d "_" -f2 | sed 's/exam//g')
+					scanSeries=$(echo $anatSCN | sed 's/mr_//g' | sed 's/0//g')
+					tarbRowWithNotes=$(grep $fullAnatTarPath $wd/lists/MPRAGEwithNotes_$date.hashsv | cut -d "#" -f13 | grep -nr $scanSeries | cut -d ":" -f1 )
+					mri_convert --in_type dicom --out_type nii sagittal_anat_mp_rage_1_mm-00001.dcm anat.$scanDate.$scanExam.$scanSeries.nii
+					/cbdb/bin/n3_normalize anat.$scanDate.$scanExam.$scanSeries.nii
+					numTRs=$(3dinfo -nv anat.$scanDate.$scanExam.$scanSeries.nii)
+					scanNotes=$(grep $fullAnatTarPath $wd/lists/MPRAGEwithNotes_$date.hashsv | sed "${tarbRowWithNotes}q;d" | cut -d "#" -f 12)
+					mv $wd/data/${subj}/tmpAnatRaw/*/*/${anatSCN}/anat.$scanDate.$scanExam.$scanSeries.n3.nii $wd/data/$subj/anat.$scanDate.$scanExam.$scanSeries.nii
+					echo "FullTarPath=$fullAnatTarPath" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "protocol=$protocol" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "scanDate=$scanDate" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "SCANTYPE=$scanType" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "scanSeries=$scanSeries" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "scanAge=$scanAge" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "scanName=$wd/data/$obscureName/anat.$scanDate.$scanExam.$scanSeries.nii" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "numTRs=$numTRs" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "scanNotes=$scanNotes" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					echo "QC=" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
+					cd $wd/data/$obscureName/
+				done
+				cd $wd/data/$obscureName/
+				echo "cleaning up anat dirs"
+				rm -r $wd/data/$obscureName/tmpAnatRaw
+				gzip $wd/data/$obscureName/*.nii
+			fi
+		done < $wd/lists/tmp.$subj.MPRAGE
+		rm $wd/lists/tmp.$subj.MPRAGE
+		echo "Have all MPRAGES from $fullAnatTarPath"
+	fi
+done
