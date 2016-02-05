@@ -143,7 +143,7 @@ while read subScan;do
 					numTRs=$(3dinfo -nv rest.$scanDate.$scanExam.$scanSeries.nii)
 					tarbRowWithNotes=$(grep $fullTarPath $wd/lists/restWithNotes_$date.hashsv | cut -d "#" -f14 | grep -nr $scanSeries | cut -d ":" -f1 )
 					scanNotes=$(grep $fullTarPath $wd/lists/restWithNotes_$date.hashsv | sed "${tarbRowWithNotes}q;d" | cut -d "#" -f 13)
-					if [[ "$numTRs" -gt 149 ]];then
+					if [[ "$numTRs" == 150 ]] || [[ "$numTRs" == 184 ]];then
 						echo "FullTarPath=$fullTarPath" >> $wd/data/$obscureName/info.rest.$scanDate.$scanExam.$scanSeries.txt
 						echo "protocol=$protocol" >> $wd/data/$obscureName/info.rest.$scanDate.$scanExam.$scanSeries.txt
 						echo "scanDate=$scanDate" >> $wd/data/$obscureName/info.rest.$scanDate.$scanExam.$scanSeries.txt

@@ -28,13 +28,13 @@ for sub in $(cat $subList);do
 			echo "${scan},${mean}" >> ${timePoint}/meanFile_${shortTime}
 		done
 		#grab best $numRest per time point
-		echo "1"
+		#echo "1"
 		sort --field-separator=',' --key=2 ${timePoint}/meanFile_${shortTime} | tail -n${numRest} > ${timePoint}/bestScans_${shortTime}
-		echo "2"
+		#echo "2"
 		bestMean=$(cut -d "," -f2 ${timePoint}/bestScans_${shortTime} | awk '{s+=$1 }END{print s/NR}' RS="\n")
 		echo "${shortTime},${bestMean}" >> ${outDir}/${sub}/tmp/timeMeans
 	done
-	echo "3"
+	#echo "3"
 	bestTimePoint=$(sort --field-separator="," --key=2 ${outDir}/${sub}/tmp/timeMeans | head -n1 | cut -d "," -f1)
 	#look up best scans from best timePoint and move them along with the anat
 	count=1
