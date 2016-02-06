@@ -11,7 +11,7 @@ if [[ $# < 10 ]];then
 	3)Freesurfer needs to be downloaded and in your path
 	######Call structure############
 
-	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} {keep Temp files?}
+	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} (numberRest} {surface?} {warpTemplate} {keep Temp files?}
 	
 	Example) run_preprocess_Uber.bash ../data_V1/ 10MInclusiveList F .25_3 F 24 10 F
 	##############Intro################
@@ -33,29 +33,29 @@ motionReg=$6 #how many motion regressors do you want in preprocessing. See above
 smooth=$7 ##smoothing kernel, can be any integer
 numRest=$8
 surf=$9 ##Sample data to individuals surface after running preprocessing.
-tempFiles=${10}
+warpTemp=$10 #this is the hardCoded name of the template files below, add another if the one you want isn't here
+tempFiles=${11}
 
 echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $tempFiles"
 
 
 
-ID="PREP.A${ART}_C${CompCorr}_M${motionReg}"
+ID="PREP.A${ART}_C${CompCorr}_M${motionReg}_WarpTemplate.$warpTemp"
 randID=$(date "+%Y-%m-%d_%H:%M:%S") #generates an ID based on time and Date that will be added to all outputFiles to distinguish runs of this script
 prepDir="${wd}/${subjName}/${ID}"
 surfPrepDir="${wd}/${subjName}/surf.${ID}"
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-project=$(echo $wd | cut -d "/" -f4)
-if [ $project == "rest10M" ];then
+if [ $warpTemp == "rest10M" ];then
 	#mask="/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii"
 	echo "Using 10M templates"
 	regMask="/data/elliottml/rest10M/templates/mask.1_brain_combined_ws_td_dupn7template_MNI_restVox.nii"
 	template=/data/elliottml/rest10M/templates/T1_combined_ws_td_dupn7template_MNI_1.5.nii
 	stripTemplate=/data/elliottml/rest10M/templates/brain_combined_ws_td_dupn7template_MNI_1.5.nii
 	brainmask=/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii
-elif [ $project == "COBRE" ];then
+elif [ $warpTemp == "COBRE" ];then
 	echo "using COBRE templates"
-	regMask="/data/elliottml/COBRE/templates/mask.1_T1_dartel_strip_240sagvols_cobreRestVox_MNI.nii"
+	regMask="/data/elliottml/COBRE/templates/mask.1_T1_dartel_strip_240sagvols_SOINrestVox.nii"
 	template=/data/elliottml/COBRE/templates/T1_dartel_avg_240sagvols_1.5mm_MNI.nii
 	stripTemplate=/data/elliottml/COBRE/templates/T1_dartel_strip_240sagvols_1.5mm_MNI.nii
 	brainmask=/data/elliottml/COBRE/templates/T1_dartel_brainmask_240sagvols_1.5mm_MNI.nii

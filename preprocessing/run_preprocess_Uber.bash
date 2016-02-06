@@ -28,14 +28,15 @@ else
 	smooth=$7 ##smoothing kernel, can be any integer
 	numRest=$8 ##how many good rest scans do you have per subject
 	surf=$9 ##Either T of F, Do you want Freesurfer and @Suma_Make_Spec_FS run on subject. Will check to see if it has already been run in the correct place of subs Tree
-	tempFiles=$10 ## Do you want extra file deleted. Should be F except for when debugging
+	warpTemp=$10 #this is the hardCoded name of the template files below, add another if the one you want isn't here
+	tempFiles=${11}
 	cwd=$(pwd)
 
 	ID="A${ART}_C${CompCorr}_M${motionReg}"
 	timeID=$(date "+%Y-%m-%d_%H:%M:%S")
 	#####Make Swarm####
 	for i in $(less $subjList);do
-		echo "cd /data/elliottml/rest10M/scripts; ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
+		echo "cd /data/elliottml/rest10M/scripts; ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 	####Run Swarm#####
 		swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --time 24:00:00 --singleout
