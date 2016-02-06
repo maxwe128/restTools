@@ -39,5 +39,5 @@ else
 		echo "cd /data/elliottml/rest10M/scripts; ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 	####Run Swarm#####
-		swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --time 24:00:00 --singleout
+		swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --time 24:00:00 --logdir
 fi
