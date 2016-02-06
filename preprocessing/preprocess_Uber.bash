@@ -33,7 +33,7 @@ motionReg=$6 #how many motion regressors do you want in preprocessing. See above
 smooth=$7 ##smoothing kernel, can be any integer
 numRest=$8
 surf=$9 ##Sample data to individuals surface after running preprocessing.
-warpTemp=$10 #this is the hardCoded name of the template files below, add another if the one you want isn't here
+warpTemp=${10} #this is the hardCoded name of the template files below, add another if the one you want isn't here
 tempFiles=${11}
 
 echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $tempFiles"

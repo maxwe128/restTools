@@ -28,7 +28,7 @@ else
 	smooth=$7 ##smoothing kernel, can be any integer
 	numRest=$8 ##how many good rest scans do you have per subject
 	surf=$9 ##Either T of F, Do you want Freesurfer and @Suma_Make_Spec_FS run on subject. Will check to see if it has already been run in the correct place of subs Tree
-	warpTemp=$10 #this is the hardCoded name of the template files below, add another if the one you want isn't here
+	warpTemp=${10} #this is the hardCoded name of the template files below, add another if the one you want isn't here
 	tempFiles=${11}
 	cwd=$(pwd)
 
