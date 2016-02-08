@@ -15,7 +15,7 @@
 
 
 date=$(date +"%Y%d%m")
-queryToRun="date=$(date +"%Y%d%m");sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_nonotes_20151202.txt /x/Rdrive/Max/queries/restNoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_withnotes_20151202.sql /x/Rdrive/Max/queries/restWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/anatnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/anatWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEwithNotes_$date"
+queryToRun="bash;date=$(date +"%Y%d%m");sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_nonotes_20151202.txt /x/Rdrive/Max/queries/restNoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_withnotes_20151202.sql /x/Rdrive/Max/queries/restWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/anatnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/anatWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEwithNotes_$date"
 wd=/helix/data/00M_rest
 cd $wd
 if [[ ! -f /helix/data/00M_rest/lists/restNoNotes_$date ]];then
@@ -25,7 +25,7 @@ if [[ ! -f /helix/data/00M_rest/lists/restNoNotes_$date ]];then
 	echo "First log in as Weili, type in the Weili Password"
 	echo "run this as weili in a bash shell:  "      
 	echo "" 
-	echo "${queryToRun};exit"
+	echo "${queryToRun};exit;exit"
 	echo ""
 	echo "then run this as yourself:"
 	echo "
