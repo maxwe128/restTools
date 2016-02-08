@@ -122,12 +122,11 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 				3dresample -master ./Wrest1.nii.gz -prefix seg.wm.csf.resamp.nii.gz -inset seg.wm.csf.nii.gz
 				3dmerge -1clust_depth 5 5 -prefix seg.wm.csf.depth.nii.gz seg.wm.csf.resamp.nii.gz
 				3dcalc -a seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix seg.wm.csf.erode.nii.gz
-				mv c[123]Wanat.nii.gz ../
 				gzip mWanat.nii
 				mv mWanat.nii.gz ../
 			fi
 			3dcalc -a seg.wm.csf.erode.nii.gz -b ./Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
-			3dpc -pcsave 5 -prefix ../pc${restNum}.wm.csf rest${restNum}.wm.csf.nii.gz
+			3dpc -pcsave 5 -prefix pc${restNum}.wm.csf rest${restNum}.wm.csf.nii.gz
 		done
 	fi
 	####could remove everything other that Wanat.nii.gz and W_rest1_vr_motion_${ID}.nii.gz and W_rest2_vr_motion_${ID}.nii.gz decon output
@@ -137,7 +136,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 		numTR=$(cat ../rest1_vr_motion.1D | wc -l)
 		for j in $(seq 1 $numTR);do echo $j >> regressors${restNum}.1D; done
 		if [ $CompCorr == T ];then
-			1dcat regressors${restNum}.1D ../pc${restNum}.wm.csf0* > regressors${restNum}_compCorr.1D
+			1dcat regressors${restNum}.1D pc${restNum}.wm.csf0* > regressors${restNum}_compCorr.1D
 			rm regressors${restNum}.1D
 			mv regressors${restNum}_compCorr.1D ./regressors${restNum}.1D
 		fi
@@ -188,6 +187,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	fi
 	gzip *.nii
 	if [ $ART != F ];then
+		gunzip ../rest*_vr.nii.gz
 		cp ../rest*_vr.nii ./
 		for restNum in $(seq 1 $numRest);do
 			echo ""; echo "############################ running ART censoring ######################"
@@ -302,13 +302,13 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 		recon-all -all -subject $sub
 		##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLE
 		cd ${SUBJECTS_DIR}/${sub}
-		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
+		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -sinteractive --cpus-per-task=4ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
 	elif [[ ! -f ${wd}/${subjName}/SUMA/std.141.rh.thickness.niml.dset ]];then
 		echo "Freesurfer completed, running MakeSpec"
 		export SUBJECTS_DIR=$wd
 		sub=$subjName
 		cd ${SUBJECTS_DIR}/${sub}
-		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
+		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivalent to number of gray matter voxels in a 4X4X4mm analysis in CWAS
 		
 	else
 		echo "Freesurfer and MakeSpec already ran"
@@ -324,7 +324,7 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	3dcalc -a ${wd}/${subjName}/SUMA/aparc+aseg_rank.nii -expr 'a' -prefix aparc+aseg_rank
 	@SUMA_AlignToExperiment -exp_anat rstrip.anat+orig. -surf_anat ${wd}/${subjName}/SUMA/brainmask.nii -align_centers -prefix anat_Alnd_exp -surf_anat_followers aparc.a2009s+aseg_rank+orig. aseg_rank+orig. aparc+aseg_rank+orig.
 	for mesh in std.60.${subjName}_rh std.60.${subjName}_lh std.30.${subjName}_rh std.30.${subjName}_lh;do
-		3dVol2Surf -spec ${wd}/${subjName}/SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -skip_col_nodes -skip_col_1dindex -skip_col_i -skip_col_j -skip_col_k -skip_col_vals -no_headers -out_1D ${mesh}.concat_bpss_${ID}.1D.dset
+		3dVol2Surf -spec ${wd}/${subjName}/SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -skip_col_nodes -skip_col_1dindex -skip_col_i -skip_col_j -skip_col_k -skip_col_vals -no_headers -out_1D ${mesh}.concat_bpss_${surfID}.1D.dset
 		SurfSmooth -met HEAT_07 -input ${mesh}.concat_bpss_${surfID}.1D.dset -fwhm 10 -output $mesh.concat_SurfSmooth10mm_bpss_${surfID}.1D.dset -spec ${wd}/${subjName}/SUMA/$mesh.spec
 		mv $mesh.concat_SurfSmooth10mm_bpss_${surfID}.1D.dset ../
 	done
@@ -348,7 +348,7 @@ if [[ $tempFiles == F ]];then
 	cd $prepDir
 	rm rest* Decon*.nii.gz tmp* 0 art* c[123]*.nii.gz brainmask_2funcgrid* mWanat_warp* rest*_vr.nii.gz segment.1D seg_* seg.wm.csf.depth.nii.gz seg.wm.csf.nii.gz seg.wm.csf.resamp.nii.gz
 	cd ../
-	rm -r pc* mWanat.nii.gz bem morph mpg rgb tiff tmp src trash 
+	rm -r mWanat.nii.gz bem morph mpg rgb tiff tmp src trash 
 	gzip *.nii
 	cd $surfPrepDir
 	3dcalc -a tmp/anat_Alnd_exp+orig. -expr 'a' -prefix anat_Alnd_exp.nii
