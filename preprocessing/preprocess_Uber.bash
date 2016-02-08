@@ -39,11 +39,11 @@ tempFiles=${11}
 echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $tempFiles"
 
 
-
-ID="PREP.A${ART}_C${CompCorr}_M${motionReg}_WarpTemplate.$warpTemp"
+surfID="PREP.A${ART}_C${CompCorr}_M${motionReg}"
+volID="PREP.A${ART}_C${CompCorr}_M${motionReg}_WarpTemplate.$warpTemp"
 randID=$(date "+%Y-%m-%d_%H:%M:%S") #generates an ID based on time and Date that will be added to all outputFiles to distinguish runs of this script
-prepDir="${wd}/${subjName}/${ID}"
-surfPrepDir="${wd}/${subjName}/surf.${ID}"
+prepDir="${wd}/${subjName}/${volID}"
+surfPrepDir="${wd}/${subjName}/surf.${surfID}"
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ $warpTemp == "rest10M" ];then
@@ -68,7 +68,7 @@ cd $prepDir
 
 #setup matlab MCR env variables
 echo "here $pwd"
-if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
+if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	if [ $WarpAndSegment == T ];then
 		#####Bulk preprocessing#####
 		for restNum in $(seq 1 $numRest);do
@@ -85,24 +85,23 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
 				mv tmp_rest${restNum}_shft+orig.BRIK tmp_rest${restNum}_cut+orig.BRIK
 			fi
 			echo ""; echo "#################"; echo "motion correcting rest scans"; echo "#################"
-			3dvolreg -tshift 0 -prefix rest${restNum}_vr_${ID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${ID}.1D tmp_rest${restNum}_cut+orig.
+			3dvolreg -tshift 0 -prefix rest${restNum}_vr_${volID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${volID}.1D tmp_rest${restNum}_cut+orig.
 			echo ""; echo "#################"; echo "starting spatial normalization and spm5 coregistration"; echo "#################"
 			cp ../anat.nii.gz ./anat${restNum}.nii.gz
 			$scriptsDir/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz $scriptsDir
 			#kill %1
-			WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${ID}.nii.gz W_rest${restNum}_vr_${ID}.nii.gz -R template_tmp_rest${restNum}_0.nii.gz Wanat${restNum}_Warp.nii.gz Wanat${restNum}_Affine.txt --use-NN
-			3drefit -space MNI -view tlrc W_rest${restNum}_vr_${ID}.nii.gz
+			WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${volID}.nii.gz W_rest${restNum}_vr_${volID}.nii.gz -R template_tmp_rest${restNum}_0.nii.gz Wanat${restNum}_Warp.nii.gz Wanat${restNum}_Affine.txt --use-NN
+			3drefit -space MNI -view tlrc W_rest${restNum}_vr_${volID}.nii.gz
 			echo ""; echo "#################"; echo "segmenting anatomic scan "; echo "#################"
 			if [[ $restNum < 2 ]];then
-				mv Wanat1.nii.gz ../Wanat.nii.gz
-				gunzip ../Wanat.nii.gz
+				mv Wanat1.nii.gz ./Wanat.nii.gz
+				gunzip ./Wanat.nii.gz
 			fi
-			mv W_rest${restNum}_vr_${ID}.nii.gz ../Wrest${restNum}.nii.gz
-			mv rest${restNum}_vr_${ID}.nii.gz ../rest${restNum}_vr.nii.gz
-			mv rest${restNum}_vr_motion_${ID}.1D ../rest${restNum}_vr_motion.1D
+			mv W_rest${restNum}_vr_${volID}.nii.gz ./Wrest${restNum}.nii.gz
+			mv rest${restNum}_vr_${volID}.nii.gz ../rest${restNum}_vr.nii.gz
+			mv rest${restNum}_vr_motion_${volID}.1D ../rest${restNum}_vr_motion.1D
 			gunzip ../rest${restNum}_vr.nii.gz
 			if [[ $restNum < 2 ]];then
-				cp ../Wanat.nii ./
 				export MCRROOT="/usr/local/matlab-compiler/v80"
 				export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
 				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
@@ -120,16 +119,15 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
 				3dAllineate -base Wanat.nii -source c2Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix seg_wm.nii.gz
 				3dAllineate -base Wanat.nii -source c3Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix seg_csf.nii.gz
 				3dcalc -a seg_wm.nii.gz -b seg_csf.nii.gz -expr 'step(a-0.975)+step(b-0.975)' -prefix seg.wm.csf.nii.gz
-				3dresample -master ../Wrest1.nii.gz -prefix seg.wm.csf.resamp.nii.gz -inset seg.wm.csf.nii.gz
+				3dresample -master ./Wrest1.nii.gz -prefix seg.wm.csf.resamp.nii.gz -inset seg.wm.csf.nii.gz
 				3dmerge -1clust_depth 5 5 -prefix seg.wm.csf.depth.nii.gz seg.wm.csf.resamp.nii.gz
 				3dcalc -a seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix seg.wm.csf.erode.nii.gz
 				mv c[123]Wanat.nii.gz ../
 				gzip mWanat.nii
 				mv mWanat.nii.gz ../
 			fi
-			3dcalc -a seg.wm.csf.erode.nii.gz -b ../Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
+			3dcalc -a seg.wm.csf.erode.nii.gz -b ./Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
 			3dpc -pcsave 5 -prefix ../pc${restNum}.wm.csf rest${restNum}.wm.csf.nii.gz
-			mv rest${restNum}.wm.csf.nii.gz ../
 		done
 	fi
 	####could remove everything other that Wanat.nii.gz and W_rest1_vr_motion_${ID}.nii.gz and W_rest2_vr_motion_${ID}.nii.gz decon output
@@ -243,10 +241,10 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
 	else
 		compReg=0
 	fi
-	1dBport -input ../Wrest1.nii.gz -band 0.008 0.1 -nozero -invert > tmp_bport.txt
+	1dBport -input ./Wrest1.nii.gz -band 0.008 0.1 -nozero -invert > tmp_bport.txt
 	numBandReg=$(head -n1 tmp_bport.txt | wc -w)
 	numBandReg=$(expr 2 + $numBandReg)
-	scanTRs=$(3dinfo -nv ../Wrest1.nii.gz)
+	scanTRs=$(3dinfo -nv ./Wrest1.nii.gz)
 	numTotalTRs=$(expr $scanTRs \* $numRest)
 	cen=$(paste -d " " tmp_cen_*) #get Trs to censor for the all rests concatenated together
 	echo $cen > outliers_concat.1D
@@ -258,13 +256,13 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz ];then
 
 	cat regressors*_IN.1D > allRegressors.1D
 	if [[ $len == 0 ]];then
-		3dTproject -input ../Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
+		3dTproject -input ./Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
 	else
-		3dTproject -input ../Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
+		3dTproject -input ./Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
 	fi
-	3dTproject -input ../Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth
+	3dTproject -input ./Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth
 
-	3dresample -master concat_blurat${smooth}mm_bpss_${ID}.nii.gz -inset /data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii -prefix brainmask_2funcgrid_${ID}.nii.gz
+	3dresample -master concat_blurat${smooth}mm_bpss_${volID}.nii.gz -inset /data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii -prefix brainmask_2funcgrid_${ID}.nii.gz
 else
 	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	echo "!!!!!!!!!!!!!!!!!Already ran Preprocessing on Volume!!!!!!!!!!!!!!!!!!!!"
@@ -277,17 +275,17 @@ fi
 #steps: run preprocessing without warp or smooth, run recon-all if not run, run SUMAMakeSpec if not run, sample rest to surface, SurfSmooth
 
 
-if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii ]];then
+if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat${smooth}mm_bpss_${surfID}.nii ]];then
 	echo "processing Surfaces"	
 	mkdir -p $surfPrepDir
 	cd $surfPrepDir
 	cp ${prepDir}/allRegressors.1D ./
-	surfCen=$(3dinfo ${prepDir}/concat_blurat${smooth}mm_bpss_${ID}.nii.gz | grep CENSOR | sed 's/.*CENSORTR //g') ##dinky workaround to get censored trs from art
+	surfCen=$(3dinfo ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz | grep CENSOR | sed 's/.*CENSORTR //g') ##dinky workaround to get censored trs from art
 	surfLen=$(echo $surfCen | wc -w)
 	if [[ $surfLen == 0 ]];then
-		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
+		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
 	else
-		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
+		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
 	fi
 	if [[ ! -f ${wd}/${subjName}/surf/rh.sphere ]];then
 		echo "Creating surfaces with Freesurfer and MakeSpec"
@@ -326,16 +324,16 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	3dcalc -a ${wd}/${subjName}/SUMA/aparc+aseg_rank.nii -expr 'a' -prefix aparc+aseg_rank
 	@SUMA_AlignToExperiment -exp_anat rstrip.anat+orig. -surf_anat ${wd}/${subjName}/SUMA/brainmask.nii -align_centers -prefix anat_Alnd_exp -surf_anat_followers aparc.a2009s+aseg_rank+orig. aseg_rank+orig. aparc+aseg_rank+orig.
 	for mesh in std.60.${subjName}_rh std.60.${subjName}_lh std.30.${subjName}_rh std.30.${subjName}_lh;do
-		3dVol2Surf -spec ${wd}/${subjName}/SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent ${surfPrepDir}/vol4surf.concat_bpss_${ID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -skip_col_nodes -skip_col_1dindex -skip_col_i -skip_col_j -skip_col_k -skip_col_vals -no_headers -out_1D ${mesh}.concat_bpss_${ID}.1D.dset
-		SurfSmooth -met HEAT_07 -input ${mesh}.concat_bpss_${ID}.1D.dset -fwhm 10 -output $mesh.concat_SurfSmooth10mm_bpss_${ID}.1D.dset -spec ${wd}/${subjName}/SUMA/$mesh.spec
-		mv $mesh.concat_SurfSmooth10mm_bpss_${ID}.1D.dset ../
+		3dVol2Surf -spec ${wd}/${subjName}/SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -skip_col_nodes -skip_col_1dindex -skip_col_i -skip_col_j -skip_col_k -skip_col_vals -no_headers -out_1D ${mesh}.concat_bpss_${ID}.1D.dset
+		SurfSmooth -met HEAT_07 -input ${mesh}.concat_bpss_${surfID}.1D.dset -fwhm 10 -output $mesh.concat_SurfSmooth10mm_bpss_${surfID}.1D.dset -spec ${wd}/${subjName}/SUMA/$mesh.spec
+		mv $mesh.concat_SurfSmooth10mm_bpss_${surfID}.1D.dset ../
 	done
 	####Extract non-cortical values from volume in organized way
-	3dresample -master ${surfPrepDir}/vol4surf.concat_bpss_${ID}.nii.gz -inset ${surfPrepDir}/tmp/aseg_rank_Alnd_Exp+orig -prefix aseg_rank_Alnd_resamp.nii
+	3dresample -master ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz -inset ${surfPrepDir}/tmp/aseg_rank_Alnd_Exp+orig -prefix aseg_rank_Alnd_resamp.nii
 	3dcalc -a aseg_rank_Alnd_resamp.nii -expr '(ispositive(equals(a,28))*a+ispositive(equals(a,8))*a+ispositive(equals(a,29))*a+ispositive(equals(a,9))*a+ispositive(equals(a,27))*a+ispositive(equals(a,7))*a+ispositive(equals(a,30))*a+ispositive(equals(a,10))*a+ispositive(equals(a,7))*a+ispositive(equals(a,13))*a+ispositive(equals(a,26))*a+ispositive(equals(a,6))*a+ispositive(equals(a,15))*a+ispositive(equals(a,14))*a+ispositive(equals(a,31))*a+ispositive(equals(a,32))*a)' -prefix volumeForSurfAnalysesMask.nii
-	3dcalc -b ${surfPrepDir}/vol4surf.concat_bpss_${ID}.nii.gz -a ${surfPrepDir}/tmp/volumeForSurfAnalysesMask.nii -expr '(ispositive(a))*b' -prefix volData.NonCortical.concat_bpss_${ID}.nii
-	3dBlurInMask -input volData.NonCortical.concat_bpss_${ID}.nii -FWHM $smooth -Mmask volumeForSurfAnalysesMask.nii -prefix volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii #should I use Mmask option to only blur in distinct anatomical regions
-	mv volData.NonCortical.concat_blurat${smooth}mm_bpss_${ID}.nii ../
+	3dcalc -b ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz -a ${surfPrepDir}/tmp/volumeForSurfAnalysesMask.nii -expr '(ispositive(a))*b' -prefix volData.NonCortical.concat_bpss_${surfID}.nii
+	3dBlurInMask -input volData.NonCortical.concat_bpss_${surfID}.nii -FWHM $smooth -Mmask volumeForSurfAnalysesMask.nii -prefix volData.NonCortical.concat_blurat${smooth}mm_bpss_${surfID}.nii #should I use Mmask option to only blur in distinct anatomical regions
+	mv volData.NonCortical.concat_blurat${smooth}mm_bpss_${surfID}.nii ../
 else
 	echo "!!!!!!!!!!!!!!!!!!!!!surface processing has already been run, make sure you are okay with your previous results!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 fi
@@ -348,7 +346,7 @@ fi
 ####Cleanup
 if [[ $tempFiles == F ]];then
 	cd $prepDir
-	rm rest* Decon*.nii.gz tmp* 0 art* c[123]*.nii.gz Wanat.nii.gz brainmask_2funcgrid* mWanat_warp* rest*_vr.nii.gz segment.1D seg_* seg.wm.csf.depth.nii.gz seg.wm.csf.nii.gz seg.wm.csf.resamp.nii.gz
+	rm rest* Decon*.nii.gz tmp* 0 art* c[123]*.nii.gz brainmask_2funcgrid* mWanat_warp* rest*_vr.nii.gz segment.1D seg_* seg.wm.csf.depth.nii.gz seg.wm.csf.nii.gz seg.wm.csf.resamp.nii.gz
 	cd ../
 	rm -r pc* mWanat.nii.gz bem morph mpg rgb tiff tmp src trash 
 	gzip *.nii
