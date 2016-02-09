@@ -227,7 +227,7 @@ while read subScan;do
 							echo "SCANTYPE=$scanType" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "scanSeries=$scanSeries" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "scanAge=$scanAge" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
-							echo "scanName=$wd/data/$obscureName/anat.$scanDate.$scanExam.$scanSeries.nii" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt/cbdb/bin//prep_memprage
+							echo "scanName=$wd/data/$obscureName/anat.$scanDate.$scanExam.$scanSeries.nii" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "numTRs=$numTRs" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "scanNotes=$scanNotes" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt
 							echo "QC=" >> $wd/data/$obscureName/info.anat.$scanDate.$scanExam.$scanSeries.txt

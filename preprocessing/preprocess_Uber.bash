@@ -40,20 +40,21 @@ echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionR
 
 
 surfID="PREP.A${ART}_C${CompCorr}_M${motionReg}"
-volID="PREP.A${ART}_C${CompCorr}_M${motionReg}_WarpTemplate.$warpTemp"
+volID="PREP.A${ART}_C${CompCorr}_M${motionReg}_WT$warpTemp"
 randID=$(date "+%Y-%m-%d_%H:%M:%S") #generates an ID based on time and Date that will be added to all outputFiles to distinguish runs of this script
 prepDir="${wd}/${subjName}/${volID}"
 surfPrepDir="${wd}/${subjName}/surf.${surfID}"
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+templateDir="${wd}/${subjName}/${warpTemp}_files" #Idea is that all warped and warp related files will go here, this way multiple runs of preprocessing can be done without having to rewarp and multiple templates can be used for the same scans without having confusion
 
-if [ $warpTemp == "rest10M" ];then
+if [ $warpTemp == "n7.WSTDDUP.MNI" ];then
 	#mask="/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii"
 	echo "Using 10M templates"
 	regMask="/data/elliottml/rest10M/templates/mask.1_brain_combined_ws_td_dupn7template_MNI_restVox.nii"
 	template=/data/elliottml/rest10M/templates/T1_combined_ws_td_dupn7template_MNI_1.5.nii
 	stripTemplate=/data/elliottml/rest10M/templates/brain_combined_ws_td_dupn7template_MNI_1.5.nii
 	brainmask=/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii
-elif [ $warpTemp == "COBRE" ];then
+elif [ $warpTemp == "n240.SagVols.MNI" ];then
 	echo "using COBRE templates"
 	regMask="/data/elliottml/COBRE/templates/mask.1_T1_dartel_strip_240sagvols_SOINrestVox.nii"
 	template=/data/elliottml/COBRE/templates/T1_dartel_avg_240sagvols_1.5mm_MNI.nii
@@ -70,6 +71,7 @@ cd $prepDir
 echo "here $pwd"
 if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	if [ $WarpAndSegment == T ];then
+		mkdir $templateDir
 		#####Bulk preprocessing#####
 		for restNum in $(seq 1 $numRest);do
 			echo "#################"; echo "copying raw data"; echo "#################"
@@ -94,13 +96,13 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			3drefit -space MNI -view tlrc W_rest${restNum}_vr_${volID}.nii.gz
 			echo ""; echo "#################"; echo "segmenting anatomic scan "; echo "#################"
 			if [[ $restNum < 2 ]];then
-				mv Wanat1.nii.gz ./Wanat.nii.gz
-				gunzip ./Wanat.nii.gz
+				mv Wanat1.nii.gz ${templateDir}/Wanat.nii.gz
+				gunzip ${templateDir}/Wanat.nii.gz
 			fi
-			mv W_rest${restNum}_vr_${volID}.nii.gz ./Wrest${restNum}.nii.gz
-			mv rest${restNum}_vr_${volID}.nii.gz ../rest${restNum}_vr.nii.gz
-			mv rest${restNum}_vr_motion_${volID}.1D ../rest${restNum}_vr_motion.1D
-			gunzip ../rest${restNum}_vr.nii.gz
+			mv W_rest${restNum}_vr_${volID}.nii.gz ${templateDir}/Wrest${restNum}.nii.gz
+			mv rest${restNum}_vr_${volID}.nii.gz ${templateDir}/rest${restNum}_vr.nii.gz
+			mv rest${restNum}_vr_motion_${volID}.1D ${templateDir}/rest${restNum}_vr_motion.1D
+			gunzip ${templateDir}/rest${restNum}_vr.nii.gz
 			if [[ $restNum < 2 ]];then
 				export MCRROOT="/usr/local/matlab-compiler/v80"
 				export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
@@ -123,7 +125,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 				3dmerge -1clust_depth 5 5 -prefix seg.wm.csf.depth.nii.gz seg.wm.csf.resamp.nii.gz
 				3dcalc -a seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix seg.wm.csf.erode.nii.gz
 				gzip -f mWanat.nii
-				mv mWanat.nii.gz ../
+				mv mWanat.nii.gz ${templateDir}/
 			fi
 			3dcalc -a seg.wm.csf.erode.nii.gz -b ./Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
 			3dpc -pcsave 5 -prefix pc${restNum}.wm.csf rest${restNum}.wm.csf.nii.gz
@@ -133,7 +135,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 
 	##################start matrix of regressors for 3dTproject
 	for restNum in $(seq 1 $numRest);do
-		numTR=$(cat ../rest1_vr_motion.1D | wc -l)
+		numTR=$(cat ${templateDir}/rest1_vr_motion.1D | wc -l)
 		rm regressors${restNum}.1D
 		for j in $(seq 1 $numTR);do echo $j >> regressors${restNum}.1D; done
 		if [ $CompCorr == T ];then
@@ -143,7 +145,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 		fi
 
 		if [ $motionReg > 0 ];then
-			ln -s ../rest${restNum}_vr_motion.1D ./
+			ln -s ${templateDir}/rest${restNum}_vr_motion.1D ./
 			echo ""; echo "############################ setting up motion Regression #################"
 			1d_tool.py -infile rest${restNum}_vr_motion.1D -derivative -write rest${restNum}_vr_motion_deriv.1D
 			for i in $(seq 0 1 5);do
@@ -188,8 +190,8 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	fi
 	gzip -f *.nii
 	if [ $ART != F ];then
-		gunzip ../rest*_vr.nii.gz
-		cp ../rest*_vr.nii ./
+		gunzip ${templateDir}/rest*_vr.nii.gz
+		cp ${templateDir}/rest*_vr.nii ./
 		for restNum in $(seq 1 $numRest);do
 			echo ""; echo "############################ running ART censoring ######################"
 			###Setup cfg file
@@ -214,7 +216,12 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			lenOut=$(echo $outliers | wc -w)
 			echo ""; echo "############################ get Censored Mean FD ######################"
 			count=0
-			out_array=($(less outliers${restNum}_new.1D)) # don't need additional to account for concating with multiplier when removing from FD
+			#######Get correct indices for censoring outliers
+			cat outliers${restNum}_new.1D | tr ' ' '\n' > outliers${restNum}_reform.1D
+			cenTRdelta=$(echo "($restNum - 1)*${numTR}" | bc)
+			1deval -a outliers${restNum}_reform.1D -expr "a+$cenTRdelta" > outliers${restNum}_cenFixed.1D
+			
+			out_array=($(less outliers${restNum}_cenFixed.1D)) # don't need additional to account for concating with multiplier when removing from FD
 			echo ${out_array[@]} > tmp_cen_$restNum #used later for censoring
 			if [[ $lenout -gt 0 ]];then
 				for i in ${out_array[@]}; do out_array[$count]=$(expr $i + 1); ((count++));done # add one so correct lines of movement file are remove, these are not zero indexed like art output and afni censoring
@@ -242,7 +249,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	else
 		compReg=0
 	fi
-	1dBport -input ./Wrest1.nii.gz -band 0.008 0.1 -nozero -invert > tmp_bport.txt
+	1dBport -input ${templateDir}/Wrest1.nii.gz -band 0.008 0.1 -nozero -invert > tmp_bport.txt
 	numBandReg=$(head -n1 tmp_bport.txt | wc -w)
 	numBandReg=$(expr 2 + $numBandReg)
 	scanTRs=$(3dinfo -nv ./Wrest1.nii.gz)
@@ -257,13 +264,13 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 
 	cat regressors*_IN.1D > allRegressors.1D
 	if [[ $len == 0 ]];then
-		3dTproject -input ./Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
+		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
 	else
-		3dTproject -input ./Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
+		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
 	fi
-	3dTproject -input ./Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth
+	3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth
 
-	3dresample -master concat_blurat${smooth}mm_bpss_${volID}.nii.gz -inset /data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii -prefix brainmask_2funcgrid_${ID}.nii.gz
+	3dresample -master concat_blurat${smooth}mm_bpss_${volID}.nii.gz -inset $brainmask -prefix brainmask_2funcgrid_${volID}.nii.gz
 else
 	echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	echo "!!!!!!!!!!!!!!!!!Already ran Preprocessing on Volume!!!!!!!!!!!!!!!!!!!!"
@@ -284,9 +291,9 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	surfCen=$(3dinfo ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz | grep CENSOR | sed 's/.*CENSORTR //g') ##dinky workaround to get censored trs from art
 	surfLen=$(echo $surfCen | wc -w)
 	if [[ $surfLen == 0 ]];then
-		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
+		3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
 	else
-		3dTproject -input ../rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
+		3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
 	fi
 	if [[ ! -f ${wd}/${subjName}/surf/rh.sphere ]];then
 		echo "Creating surfaces with Freesurfer and MakeSpec"
@@ -300,7 +307,7 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 		mri_convert ${wd}/${sub}/anat.nii.gz ${wd}/${sub}/mri/orig/001.mgz
 		##RUN FS ON SUBJECT
 		cd $SUBJECTS_DIR
-		recon-all -all -subject $sub
+		recon-all -openmp 4 -all -subject $sub
 		##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLE
 		cd ${SUBJECTS_DIR}/${sub}
 		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
@@ -341,7 +348,7 @@ fi
 
 #######################################################
 #command to run if malloc error occurs
-#cen=$(paste -d " " tmp_cen_*);3dTproject -input ../Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${ID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen;3dTproject -input ../Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth
+#cen=$(paste -d " " tmp_cen_*);3dTproject -input ./Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen;3dTproject -input ./Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth;3dresample -master concat_blurat${smooth}mm_bpss_${volID}.nii.gz -inset $brainmask -prefix brainmask_2funcgrid_${volID}.nii.gz
 
 
 ####Cleanup
