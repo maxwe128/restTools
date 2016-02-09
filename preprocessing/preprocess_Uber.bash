@@ -122,7 +122,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 				3dresample -master ./Wrest1.nii.gz -prefix seg.wm.csf.resamp.nii.gz -inset seg.wm.csf.nii.gz
 				3dmerge -1clust_depth 5 5 -prefix seg.wm.csf.depth.nii.gz seg.wm.csf.resamp.nii.gz
 				3dcalc -a seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix seg.wm.csf.erode.nii.gz
-				gzip mWanat.nii
+				gzip -f mWanat.nii
 				mv mWanat.nii.gz ../
 			fi
 			3dcalc -a seg.wm.csf.erode.nii.gz -b ./Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
@@ -134,6 +134,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	##################start matrix of regressors for 3dTproject
 	for restNum in $(seq 1 $numRest);do
 		numTR=$(cat ../rest1_vr_motion.1D | wc -l)
+		rm regressors${restNum}.1D
 		for j in $(seq 1 $numTR);do echo $j >> regressors${restNum}.1D; done
 		if [ $CompCorr == T ];then
 			1dcat regressors${restNum}.1D pc${restNum}.wm.csf0* > regressors${restNum}_compCorr.1D
@@ -185,7 +186,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	else
 		echo "keeping Files"
 	fi
-	gzip *.nii
+	gzip -f *.nii
 	if [ $ART != F ];then
 		gunzip ../rest*_vr.nii.gz
 		cp ../rest*_vr.nii ./
@@ -225,7 +226,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			fi
 			cut -d " " -f3- regressors${restNum}.1D > regressors${restNum}_IN.1D #there is a space(not sure why) then an index I put in for censoring motionfile reasons, need to remove both regressors${restNum}.1D
 		done
-		gzip *.nii
+		gzip -f *.nii
 		cat tmp_FD*_cens.1D > FD_both_cens.1D
 		awk '{s+=$1}END{print s/NR}' RS="\n" FD_both_cens.1D >meanFD_cens.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
 	fi
@@ -349,11 +350,11 @@ if [[ $tempFiles == F ]];then
 	rm rest* Decon*.nii.gz tmp* 0 art* c[123]*.nii.gz brainmask_2funcgrid* mWanat_warp* rest*_vr.nii.gz segment.1D seg_* seg.wm.csf.depth.nii.gz seg.wm.csf.nii.gz seg.wm.csf.resamp.nii.gz
 	cd ../
 	rm -r mWanat.nii.gz bem morph mpg rgb tiff tmp src trash 
-	gzip *.nii
+	gzip -f *.nii
 	cd $surfPrepDir
 	3dcalc -a tmp/anat_Alnd_exp+orig. -expr 'a' -prefix anat_Alnd_exp.nii
 	rm -r tmp
-	gzip *.nii
+	gzip -f *.nii
 else
 	echo "keeping Files"
 fi
