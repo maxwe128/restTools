@@ -302,7 +302,7 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 		recon-all -all -subject $sub
 		##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLE
 		cd ${SUBJECTS_DIR}/${sub}
-		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -sinteractive --cpus-per-task=4ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
+		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
 	elif [[ ! -f ${wd}/${subjName}/SUMA/std.141.rh.thickness.niml.dset ]];then
 		echo "Freesurfer completed, running MakeSpec"
 		export SUBJECTS_DIR=$wd
