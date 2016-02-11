@@ -45,7 +45,7 @@ randID=$(date "+%Y-%m-%d_%H:%M:%S") #generates an ID based on time and Date that
 prepDir="${wd}/${subjName}/${volID}"
 surfPrepDir="${wd}/${subjName}/surf.${surfID}"
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-templateDir="${wd}/${subjName}/${warpTemp}_files" #Idea is that all warped and warp related files will go here, this way multiple runs of preprocessing can be done without having to rewarp and multiple templates can be used for the same scans without having confusion
+templateDir="${wd}/${subjName}/template_${warpTemp}_files" #Idea is that all warped and warp related files will go here, this way multiple runs of preprocessing can be done without having to rewarp and multiple templates can be used for the same scans without having confusion
 
 if [ $warpTemp == "n7.WSTDDUP.MNI" ];then
 	#mask="/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii"
@@ -70,7 +70,7 @@ cd $prepDir
 #setup matlab MCR env variables
 echo "here $pwd"
 if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
-	if [ $WarpAndSegment == T ];then
+	if [[ ! -f  ${templateDir}/Wrest${numRest}.nii.gz ]];then
 		mkdir $templateDir
 		#####Bulk preprocessing#####
 		for restNum in $(seq 1 $numRest);do
@@ -114,22 +114,29 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
 				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
 				export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
+				cp ${templateDir}/Wanat.nii ./
 				/data/SOIN/scripts/spm5_segment Wanat.nii /data/SOIN/templates/tpm
+				mv mWanat.nii c*Wanat.nii ${templateDir}/
 				echo ""; echo "#################"; echo "calculating aCompCor components"; echo "#################"
-				3dAllineate -base Wanat.nii -source mWanat.nii.gz -prefix mWanat_warp.nii.gz -1Dmatrix_save segment.1D
-				3dAllineate -base Wanat.nii -source c1Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix seg_gm.nii.gz
-				3dAllineate -base Wanat.nii -source c2Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix seg_wm.nii.gz
-				3dAllineate -base Wanat.nii -source c3Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix seg_csf.nii.gz
-				3dcalc -a seg_wm.nii.gz -b seg_csf.nii.gz -expr 'step(a-0.975)+step(b-0.975)' -prefix seg.wm.csf.nii.gz
-				3dresample -master ./Wrest1.nii.gz -prefix seg.wm.csf.resamp.nii.gz -inset seg.wm.csf.nii.gz
-				3dmerge -1clust_depth 5 5 -prefix seg.wm.csf.depth.nii.gz seg.wm.csf.resamp.nii.gz
-				3dcalc -a seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix seg.wm.csf.erode.nii.gz
-				gzip -f mWanat.nii
-				mv mWanat.nii.gz ${templateDir}/
+				3dAllineate -base ${templateDir}/Wanat.nii -source ${templateDir}/mWanat.nii.gz -prefix ${templateDir}/mWanat_warp.nii.gz -1Dmatrix_save segment.1D
+				3dAllineate -base ${templateDir}/Wanat.nii -source ${templateDir}/c1Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix ${templateDir}/seg_gm.nii.gz
+				3dAllineate -base ${templateDir}/Wanat.nii -source ${templateDir}/c2Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix ${templateDir}/seg_wm.nii.gz
+				3dAllineate -base ${templateDir}/Wanat.nii -source ${templateDir}/c3Wanat.nii.gz -1Dmatrix_apply segment.1D -prefix ${templateDir}/seg_csf.nii.gz
+				3dcalc -a ${templateDir}/seg_wm.nii.gz -b ${templateDir}/seg_csf.nii.gz -expr 'step(a-0.975)+step(b-0.975)' -prefix ${templateDir}/seg.wm.csf.nii.gz
+				3dresample -master ${templateDir}/Wrest1.nii.gz -prefix ${templateDir}/seg.wm.csf.resamp.nii.gz -inset ${templateDir}/seg.wm.csf.nii.gz
+				3dmerge -1clust_depth 5 5 -prefix ${templateDir}/seg.wm.csf.depth.nii.gz ${templateDir}/seg.wm.csf.resamp.nii.gz
+				3dcalc -a ${templateDir}/seg.wm.csf.depth.nii.gz -expr 'step(a-1)' -prefix ${templateDir}/seg.wm.csf.erode.nii.gz
+				gzip -f ${templateDir}/mWanat.nii
+				rm Wanat.nii
 			fi
-			3dcalc -a seg.wm.csf.erode.nii.gz -b ./Wrest${restNum}.nii.gz -expr 'a*b' -prefix rest${restNum}.wm.csf.nii.gz
-			3dpc -pcsave 5 -prefix pc${restNum}.wm.csf rest${restNum}.wm.csf.nii.gz
+			3dcalc -a ${templateDir}/seg.wm.csf.erode.nii.gz -b ${templateDir}/Wrest${restNum}.nii.gz -expr 'a*b' -prefix ${templateDir}/rest${restNum}.wm.csf.nii.gz
+			3dpc -pcsave 5 -prefix ${templateDir}/pc${restNum}.wm.csf ${templateDir}/rest${restNum}.wm.csf.nii.gz
 		done
+	else
+		echo ""; echo "#################"; echo "WARNING"; echo "#################"
+		echo ""; echo "#################"; echo "Skipping warping because it has already been done for $warpTemp on this subject"; echo "#################"
+		echo ""; echo "#################"; echo "WARNING"; echo "#################"	
+
 	fi
 	####could remove everything other that Wanat.nii.gz and W_rest1_vr_motion_${ID}.nii.gz and W_rest2_vr_motion_${ID}.nii.gz decon output
 
@@ -139,7 +146,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 		rm regressors${restNum}.1D
 		for j in $(seq 1 $numTR);do echo $j >> regressors${restNum}.1D; done
 		if [ $CompCorr == T ];then
-			1dcat regressors${restNum}.1D pc${restNum}.wm.csf0* > regressors${restNum}_compCorr.1D
+			1dcat regressors${restNum}.1D ${templateDir}/pc${restNum}.wm.csf0* > regressors${restNum}_compCorr.1D
 			rm regressors${restNum}.1D
 			mv regressors${restNum}_compCorr.1D ./regressors${restNum}.1D
 		fi

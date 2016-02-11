@@ -37,7 +37,7 @@ else
 	scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	#####Make Swarm####
 	for i in $(less $subjList);do
-		echo "cd $scriptsDir; ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
+		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 	####Run Swarm#####
 		swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --time 24:00:00 --logdir LOGS ##-noht  ##This may help solve malloc issue
