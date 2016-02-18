@@ -259,7 +259,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	1dBport -input ${templateDir}/Wrest1.nii.gz -band 0.008 0.1 -nozero -invert > tmp_bport.txt
 	numBandReg=$(head -n1 tmp_bport.txt | wc -w)
 	numBandReg=$(expr 2 + $numBandReg)
-	scanTRs=$(3dinfo -nv ./Wrest1.nii.gz)
+	scanTRs=$(3dinfo -nv ${templateDir}/Wrest1.nii.gz)
 	numTotalTRs=$(expr $scanTRs \* $numRest)
 	cen=$(paste -d " " tmp_cen_*) #get Trs to censor for the all rests concatenated together
 	echo $cen > outliers_concat.1D
