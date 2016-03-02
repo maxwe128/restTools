@@ -39,11 +39,11 @@ while [ ${numJobs} -gt 0 ];do
 			volPrepDir=$(echo "${prepDir}/${i}/PREP.A${art}_C${comp}_M${motReg}_WT${templateName}")
 			surfPrepDir=$(echo "${prepDir}/${i}/surf.PREP.A${art}_C${comp}_M${motReg}")
 			##remove prep files that may be related to malloc issues so that they are made anew when reran
-			if [[ -f ${volPrepDir}/concat_blurat${blur}mm_bpss_PREP.A${art}_C${comp}_M${motReg}_WT${templateName}.nii.gz ]];then
-				rm -r $surfPrepDir
-			else
-				rm -r $volPrepDir
-			fi
+			#if [[ -f ${volPrepDir}/concat_blurat${blur}mm_bpss_PREP.A${art}_C${comp}_M${motReg}_WT${templateName}.nii.gz ]];then
+			#	rm -r $surfPrepDir
+			#else
+			#	rm -r $volPrepDir
+			#fi
 		fi
 	done
 	malLen=$(echo $mallocList | wc -w)
@@ -54,12 +54,12 @@ while [ ${numJobs} -gt 0 ];do
 			scancel ${jobID}_${badJob}
 			grep -n $i $swarmFile | cut -d ":" -f2 >> ${cwd}/swarm.preprocess_Uber_$timeID
 		done
-		#call command that you need to create that does the same thing you just did, but calls itself recursively so that it recylcels mallocs until they are done
+		#call command that you need to create that does the same thing you just did, but calls itself recursively so that it recylcles mallocs until they are done
 		#takes a swarm file in and runs the swarm until it is done, while constructing a swarm file of mallocs, then calls itself
-		echo "malloc found, running mallocFighter recursively until mallocs are decimated!!!";echo "###############################"
+		echo "!!!!!!!!!!malloc found, will run mallocFighter recursively until mallocs are decimated once job:$jobID is fiinished!!!!!!!!";echo "###############################"
 		sleep 1m
 	else
-		echo "no mallocs yet, waiting 1 minute before checking again";echo "###############################"
+		echo "no mallocs during this check, waiting 1 minute before checking again";echo "###############################"
 		sleep 1m		
 	fi
 	
@@ -68,9 +68,10 @@ while [ ${numJobs} -gt 0 ];do
 done
 
 #once all the jobs are either killed because of malloc or finish, then rerun the mallocs with a recursive call. running this outside of while should clean things up and help with debugging
-reSwarmLen=$(wc -l ${cwd}/swarm.preprocess_Uber_$timeID | cut -d " " -f1)
 
-if [[ ${reSwarmLen} -gt 0 ]];then
+echo "checking for ${cwd}/swarm.preprocess_Uber_$timeID"
+if [[ -s ${cwd}/swarm.preprocess_Uber_$timeID ]];then
+	echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%";echo "restarting mallocFighter";echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
 	bash ${scriptsDir}/mallocFighter.bash ${cwd}/swarm.preprocess_Uber_$timeID
 else
 	echo "we escaped the malloc induced threat of infinite recursion, YAY!!!!"

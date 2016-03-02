@@ -257,30 +257,12 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			echo "#################";echo "Skipping over art stuff, this has already been run";echo "#################"
 		fi
 	fi
-
 	echo ""; echo "#################"; echo "bandpass filtering, detrending and blurring rest data"; echo "#################"
-
-	######First pass regression of nuisance covariates, Then will do censoring below. This is a hacky way of saving DOF, not the best but DOF at this stage doesnt really matter and this saves subjects#####
-
-	##count DOF and exit if not enough here, based on ART, motion, Compcorr and bandpass
-	echo "##################Counting Regressors and determining Degrees of Freedom########################"
-	if [ $CompCorr == T ];then
-		compReg=5
-	else
-		compReg=0
-	fi
-	1dBport -input ${templateDir}/Wrest1.nii.gz -band 0.008 0.1 -nozero -invert > tmp_bport.txt
-	numBandReg=$(expr 2 + $numBandReg)
 	scanTRs=$(3dinfo -nv ${templateDir}/Wrest1.nii.gz)
 	numTotalTRs=$(expr $scanTRs \* $numRest)
 	cen=$(paste -d " " tmp_cen_*) #get Trs to censor for the all rests concatenated together
 	echo $cen > outliers_concat.1D
 	len=$(echo $cen | wc -w)
-	#expr $len + $motionReg + $comReg + 2 \* $numRest +
-	numFirstPassReg=$(expr $motionReg + $compReg + 2 )
-	numSecPassReg=$(expr $len + 2 \* $numBandReg)
-	TRsLeft=$(expr $numTotalTRs - $numSecPassReg)ls 
-
 	cat regressors*_IN.1D > allRegressors.1D
 	if [[ $len == 0 ]];then
 		3dTproject -PREP.A.5_3_CT_M6_WTn7.WSTDDUPinput ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
@@ -351,7 +333,7 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	3dcalc -a ${wd}/${subjName}/SUMA/aparc+aseg_rank.nii -expr 'a' -prefix aparc+aseg_rank
 	@SUMA_AlignToExperiment -exp_anat rstrip.anat+orig. -surf_anat ${wd}/${subjName}/SUMA/brainmask.nii -align_centers -prefix anat_Alnd_exp -surf_anat_followers aparc.a2009s+aseg_rank+orig. aseg_rank+orig. aparc+aseg_rank+orig.
 	for mesh in std.60.${subjName}_rh std.60.${subjName}_lh std.30.${subjName}_rh std.30.${subjName}_lh;do
-		3dVol2Surf -spec ${wd}/${subjName}/SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz -map_func ave -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -skip_col_nodes -skip_col_1dindex -skip_col_i -skip_col_j -skip_col_k -skip_col_vals -no_headers -out_1D ${mesh}.concat_bpss_${surfID}.1D.dset
+		3dVol2Surf -spec ${wd}/${subjName}/SUMA/$mesh.spec -surf_A smoothwm -surf_B pial -sv anat_Alnd_exp+orig.HEAD -grid_parent ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz -map_func ave -oob_value 0 -f_steps 10 -f_index nodes -f_p1_fr -0.1 -f_pn_fr 0.1 -skip_col_nodes -skip_col_1dindex -skip_col_i -skip_col_j -skip_col_k -skip_col_vals -no_headers -out_1D ${mesh}.concat_bpss_${surfID}.1D.dset
 		SurfSmooth -met HEAT_07 -input ${mesh}.concat_bpss_${surfID}.1D.dset -fwhm 10 -output $mesh.concat_SurfSmooth10mm_bpss_${surfID}.1D.dset -spec ${wd}/${subjName}/SUMA/$mesh.spec
 		mv $mesh.concat_SurfSmooth10mm_bpss_${surfID}.1D.dset ../
 	done
