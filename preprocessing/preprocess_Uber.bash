@@ -105,6 +105,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			mv W_rest${restNum}_vr_${volID}.nii.gz ${templateDir}/Wrest${restNum}.nii.gz
 			mv rest${restNum}_vr_${volID}.nii.gz ${templateDir}/rest${restNum}_vr.nii.gz
 			mv rest${restNum}_vr_motion_${volID}.1D ${templateDir}/rest${restNum}_vr_motion.1D
+			gzip rstrip.anat${restNum}.nii
 			mv rstrip.anat${restNum}.nii.gz ${templateDir}/
 			gunzip ${templateDir}/rest${restNum}_vr.nii.gz
 			if [[ $restNum < 2 ]];then
@@ -145,108 +146,116 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	####could remove everything other that Wanat.nii.gz and W_rest1_vr_motion_${ID}.nii.gz and W_rest2_vr_motion_${ID}.nii.gz decon output
 
 	##################start matrix of regressors for 3dTproject
-	for restNum in $(seq 1 $numRest);do
-		numTR=$(cat ${templateDir}/rest1_vr_motion.1D | wc -l)
-		rm regressors${restNum}.1D
-		for j in $(seq 1 $numTR);do echo $j >> regressors${restNum}.1D; done
-		if [ $CompCorr == T ];then
-			1dcat regressors${restNum}.1D ${templateDir}/pc${restNum}.wm.csf0* > regressors${restNum}_compCorr.1D
-			rm regressors${restNum}.1D
-			mv regressors${restNum}_compCorr.1D ./regressors${restNum}.1D
-		fi
-
-		if [ $motionReg > 0 ];then
-			ln -s ${templateDir}/rest${restNum}_vr_motion.1D ./
-			echo ""; echo "############################ setting up motion Regression #################"
-			1d_tool.py -infile rest${restNum}_vr_motion.1D -derivative -write rest${restNum}_vr_motion_deriv.1D
-			for i in $(seq 0 1 5);do
-				1deval -a rest${restNum}_vr_motion.1D"[$i]" -expr 'a^2' > rest${restNum}_vr_motion_quad_temp${i}.1D
-				1deval -a rest${restNum}_vr_motion_deriv.1D"[$i]" -expr 'a^2' > rest${restNum}_vr_motion_deriv_quad_temp${i}.1D
-			done
-			paste -d " " rest${restNum}_vr_motion_quad_temp* > rest${restNum}_vr_motion_quad.1D
-			paste -d " " rest${restNum}_vr_motion_deriv_quad_temp* > rest${restNum}_vr_motion_deriv_quad.1D
-			rm *quad_temp*
-			######make FD time courses for subjects runs#######
-			1d_tool.py -infile rest${restNum}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write tmp_FD${restNum}.1D
-			echo ""; echo "#################"; echo "Using regressors of no interest and determining residuals"; echo "#################"
-
-			if [ $motionReg == 6 ];then
-				1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D > regressors${restNum}_motion.1D
-				rm regressors${restNum}.1D
-				mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
-			elif [ $motionReg == 12 ];then
-				1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D rest${restNum}_vr_motion_deriv.1D > regressors${restNum}_motion.1D
-				rm regressors${restNum}.1D
-				mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
-			elif [ $motionReg == 18 ];then
-				1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D rest${restNum}_vr_motion_deriv.1D rest${restNum}_vr_motion_quad.1D > regressors${restNum}_motion.1D
-				rm regressors${restNum}.1D
-				mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
-			elif [ $motionReg == 24 ];then
-				1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D rest${restNum}_vr_motion_deriv.1D rest${restNum}_vr_motion_quad.1D rest${restNum}_vr_motion_deriv_quad.1D > regressors${restNum}_motion.1D
-				rm regressors${restNum}.1D
-				mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
-			else
-				echo "!!!!!!!!!!!!!!!!!!!!!!!!!!You failed at choosing a motionReg option!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-				exit
-			fi
-		fi
-	done
-	cat tmp_FD*.1D > FD_both.1D
-	awk '{s+=$1}END{print s/NR}' RS="\n" FD_both.1D >meanFD.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
-	if [ $tempFiles == F ];then
-		rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* seg* art_*
-	else
-		echo "keeping Files"
-	fi
-	gzip -f *.nii
-	if [ $ART != F ];then
-		gunzip ${templateDir}/rest*_vr.nii.gz
-		cp ${templateDir}/rest*_vr.nii ./
+	if [[ ! -s ${prepDir}/meanFD.txt ]];then # check if file is empty (not not empty) in case txt file was made but mean was never found (in that case you want block rerun)
 		for restNum in $(seq 1 $numRest);do
-			echo ""; echo "############################ running ART censoring ######################"
-			###Setup cfg file
-			sed 's/rest1/rest'${restNum}'/g' ${scriptsDir}/rest${restNum}_std.cfg > rest${restNum}_std.cfg
-			mm=$(echo $ART | cut -d "_" -f1)
-			sd=$(echo $ART | cut -d "_" -f2)
-			sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/global_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg
-			######Art#####
-			export MCRROOT="/usr/local/matlab-compiler/v80"
-			export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
-			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
-			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64
-			export MCRJRE=${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
-			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/native_threads
-			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/server
-			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
-			export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
-			export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
-			${scriptsDir}/art rest${restNum}_new.cfg
-			mv outliers.1D outliers${restNum}_new.1D
-			outliers=$(cat outliers${restNum}_new.1D)
-			lenOut=$(echo $outliers | wc -w)
-			echo ""; echo "############################ get Censored Mean FD ######################"
-			count=0
-			#######Get correct indices for censoring outliers
-			cat outliers${restNum}_new.1D | tr ' ' '\n' > outliers${restNum}_reform.1D
-			cenTRdelta=$(echo "($restNum - 1)*${numTR}" | bc)
-			1deval -a outliers${restNum}_reform.1D -expr "a+$cenTRdelta" > outliers${restNum}_cenFixed.1D
-			
-			out_array=($(less outliers${restNum}_cenFixed.1D)) # don't need additional to account for concating with multiplier when removing from FD
-			echo ${out_array[@]} > tmp_cen_$restNum #used later for censoring
-			if [[ $lenout -gt 0 ]];then
-				for i in ${out_array[@]}; do out_array[$count]=$(expr $i + 1); ((count++));done # add one so correct lines of movement file are remove, these are not zero indexed like art output and afni censoring
-				out_form=$(echo "$(echo ${out_array[@]} | sed 's/ /d;/g')d") #remove all lines that art said to remove, using above formatting	
-				sed "${out_form}" rest${restNum}_vr_motion_deriv.1D > rest${restNum}_vr_deriv_cens.1D
-				1d_tool.py -infile rest${restNum}_vr_deriv_cens.1D -collapse_cols euclidean_norm -write tmp_FD${restNum}_cens.1D
-			else #for case when there are no outliers
-				1d_tool.py -infile rest${restNum}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write tmp_FD${restNum}_cens.1D
+			numTR=$(cat ${templateDir}/rest1_vr_motion.1D | wc -l)
+			rm regressors${restNum}.1D
+			for j in $(seq 1 $numTR);do echo $j >> regressors${restNum}.1D; done
+			if [ $CompCorr == T ];then
+				1dcat regressors${restNum}.1D ${templateDir}/pc${restNum}.wm.csf0* > regressors${restNum}_compCorr.1D
+				rm regressors${restNum}.1D
+				mv regressors${restNum}_compCorr.1D ./regressors${restNum}.1D
 			fi
-			cut -d " " -f3- regressors${restNum}.1D > regressors${restNum}_IN.1D #there is a space(not sure why) then an index I put in for censoring motionfile reasons, need to remove both regressors${restNum}.1D
+
+			if [ $motionReg > 0 ];then
+				ln -s ${templateDir}/rest${restNum}_vr_motion.1D ./
+				echo ""; echo "############################ setting up motion Regression #################"
+				1d_tool.py -infile rest${restNum}_vr_motion.1D -derivative -write rest${restNum}_vr_motion_deriv.1D
+				for i in $(seq 0 1 5);do
+					1deval -a rest${restNum}_vr_motion.1D"[$i]" -expr 'a^2' > rest${restNum}_vr_motion_quad_temp${i}.1D
+					1deval -a rest${restNum}_vr_motion_deriv.1D"[$i]" -expr 'a^2' > rest${restNum}_vr_motion_deriv_quad_temp${i}.1D
+				done
+				paste -d " " rest${restNum}_vr_motion_quad_temp* > rest${restNum}_vr_motion_quad.1D
+				paste -d " " rest${restNum}_vr_motion_deriv_quad_temp* > rest${restNum}_vr_motion_deriv_quad.1D
+				rm *quad_temp*
+				######make FD time courses for subjects runs#######
+				1d_tool.py -infile rest${restNum}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write tmp_FD${restNum}.1D
+				echo ""; echo "#################"; echo "Using regressors of no interest and determining residuals"; echo "#################"
+
+				if [ $motionReg == 6 ];then
+					1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D > regressors${restNum}_motion.1D
+					rm regressors${restNum}.1D
+					mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
+				elif [ $motionReg == 12 ];then
+					1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D rest${restNum}_vr_motion_deriv.1D > regressors${restNum}_motion.1D
+					rm regressors${restNum}.1D
+					mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
+				elif [ $motionReg == 18 ];then
+					1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D rest${restNum}_vr_motion_deriv.1D rest${restNum}_vr_motion_quad.1D > regressors${restNum}_motion.1D
+					rm regressors${restNum}.1D
+					mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
+				elif [ $motionReg == 24 ];then
+					1dcat regressors${restNum}.1D rest${restNum}_vr_motion.1D rest${restNum}_vr_motion_deriv.1D rest${restNum}_vr_motion_quad.1D rest${restNum}_vr_motion_deriv_quad.1D > regressors${restNum}_motion.1D
+					rm regressors${restNum}.1D
+					mv regressors${restNum}_motion.1D ./regressors${restNum}.1D
+				else
+					echo "!!!!!!!!!!!!!!!!!!!!!!!!!!You failed at choosing a motionReg option!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+					exit
+				fi
+			fi
 		done
+		cat tmp_FD*.1D > FD_both.1D
+		awk '{s+=$1}END{print s/NR}' RS="\n" FD_both.1D >meanFD.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
+		if [ $tempFiles == F ];then
+			rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* seg* art_*
+		else
+			echo "keeping Files"
+		fi
 		gzip -f *.nii
-		cat tmp_FD*_cens.1D > FD_both_cens.1D
-		awk '{s+=$1}END{print s/NR}' RS="\n" FD_both_cens.1D >meanFD_cens.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
+	else
+		echo "#################";echo "skipping over regressor creation, already has been completed";echo "#################"
+	fi
+	if [ $ART != F ];then
+		if [[ ! -s ${prepDir}/meanFD_cens.txt ]];then # check if file is empty (not not empty)
+			gunzip ${templateDir}/rest*_vr.nii.gz
+			cp ${templateDir}/rest*_vr.nii ./
+			for restNum in $(seq 1 $numRest);do
+				echo ""; echo "############################ running ART censoring ######################"
+				###Setup cfg file
+				sed 's/rest1/rest'${restNum}'/g' ${scriptsDir}/rest${restNum}_std.cfg > rest${restNum}_std.cfg
+				mm=$(echo $ART | cut -d "_" -f1)
+				sd=$(echo $ART | cut -d "_" -f2)
+				sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/global_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg
+				######Art#####
+				export MCRROOT="/usr/local/matlab-compiler/v80"
+				export LD_LIBRARY_PATH=.:${MCRROOT}/runtime/glnxa64
+				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64
+				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64
+				export MCRJRE=${MCRROOT}/sys/java/jre/glnxa64/jre/lib/amd64
+				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/native_threads
+				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/server
+				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}/client
+				export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRJRE}
+				export XAPPLRESDIR=${MCRROOT}/X11/app-defaults
+				${scriptsDir}/art rest${restNum}_new.cfg
+				mv outliers.1D outliers${restNum}_new.1D
+				outliers=$(cat outliers${restNum}_new.1D)
+				lenOut=$(echo $outliers | wc -w)
+				echo ""; echo "############################ get Censored Mean FD ######################"
+				count=0
+				#######Get correct indices for censoring outliers
+				cat outliers${restNum}_new.1D | tr ' ' '\n' > outliers${restNum}_reform.1D
+				cenTRdelta=$(echo "($restNum - 1)*${numTR}" | bc)
+				1deval -a outliers${restNum}_reform.1D -expr "a+$cenTRdelta" > outliers${restNum}_cenFixed.1D
+			
+				out_array=($(less outliers${restNum}_cenFixed.1D)) # don't need additional to account for concating with multiplier when removing from FD
+				echo ${out_array[@]} > tmp_cen_$restNum #used later for censoring
+				if [[ $lenout -gt 0 ]];then
+					for i in ${out_array[@]}; do out_array[$count]=$(expr $i + 1); ((count++));done # add one so correct lines of movement file are remove, these are not zero indexed like art output and afni censoring
+					out_form=$(echo "$(echo ${out_array[@]} | sed 's/ /d;/g')d") #remove all lines that art said to remove, using above formatting	
+					sed "${out_form}" rest${restNum}_vr_motion_deriv.1D > rest${restNum}_vr_deriv_cens.1D
+					1d_tool.py -infile rest${restNum}_vr_deriv_cens.1D -collapse_cols euclidean_norm -write tmp_FD${restNum}_cens.1D
+				else #for case when there are no outliers
+					1d_tool.py -infile rest${restNum}_vr_motion_deriv.1D -collapse_cols euclidean_norm -write tmp_FD${restNum}_cens.1D
+				fi
+				cut -d " " -f3- regressors${restNum}.1D > regressors${restNum}_IN.1D #there is a space(not sure why) then an index I put in for censoring motionfile reasons, need to remove both regressors${restNum}.1D
+			done
+			gzip -f *.nii
+			cat tmp_FD*_cens.1D > FD_both_cens.1D
+			awk '{s+=$1}END{print s/NR}' RS="\n" FD_both_cens.1D >meanFD_cens.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
+		else
+			echo "#################";echo "Skipping over art stuff, this has already been run";echo "#################"
+		fi
 	fi
 
 	echo ""; echo "#################"; echo "bandpass filtering, detrending and blurring rest data"; echo "#################"

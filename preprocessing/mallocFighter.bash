@@ -21,7 +21,7 @@ cwd=$(pwd)
 #Check if jobs are running, check for malloc until there are no jobs left. If malloc, kill job, send command to new swarm file, rerun swarm with malloc fighter for new swarm jobID
 numJobs=$(sjobs | grep $jobID | wc -l)
 while [ ${numJobs} -gt 0 ];do
-	echo "###############################";echo "there are $numJobs biowulf jobs running within mallocFighter fighting swarm job: $jobID"
+	echo "###############################";echo "there are $numJobs biowulf jobs running within mallocFighter;Currently fighting with swarm job: $jobID"
 	mallocList=""
 	for i in $(cat $swarmFile | cut -d " " -f5);do 
 		checkMal=$(grep malloc ${scriptsDir}/LOGS/preProcess_Uber.${i}* | wc -w)
