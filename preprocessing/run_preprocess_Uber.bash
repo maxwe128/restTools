@@ -1,5 +1,11 @@
 #!/bin/bash
-###make swarm, run swarm
+
+##################################run_preprocess_Uber.bash##############################
+####################### Authored by Max Elliott in its original form sometime in 2015 ####################
+
+####Description####
+#make swarm, run swarm through malloc fighter
+
 
 export OMP_NUM_THREADS=4
 if [[ $# < 10 ]];then
@@ -40,6 +46,11 @@ else
 		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 	####Run Swarm#####
+	#now all swarm calls of preprocess_Uber are run through mallocFighter to avoid dumb mallocs
+	bash ${scriptsDir}/mallocFighter.bash ${cwd}/swarm.preprocess_Uber_$timeID
+
+	#Nothing below that is commented should be needed but keeping for now in case malloc fighter busts
+	<<COMMENT
 	jobID=$(swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --time 24:00:00 --logdir LOGS ##-noht  ##This may help solve malloc issue)
 
 	###Run malloc fighter on LOGs that have been written to ./LOGS/preProcess_Uber.$i.$ID
@@ -71,6 +82,7 @@ else
 		bash ${scriptsDir}/mallocFighter.bash ${cwd}/swarm.preprocess_Uber_$newTimeID
 		numJobs=$(sjobs | grep $jobID | wc -l)
 	done
+	COMMENT
 
 fi
 

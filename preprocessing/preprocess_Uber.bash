@@ -1,7 +1,10 @@
 #!/bin/bash
 
-####Need to fix the creation of the regressors file, not all being but together. Also whats up with malloc error maybe start regressors as list of 1s then use 1dcat then remove 1s at
+##################################preprocess_Uber.bash##############################
+####################### Authored by Max Elliott in its original form sometime in 2015 ####################
 
+####Description####
+#this worker script for preprocessing resting state data
 
 if [[ $# < 10 ]];then
 	echo "
@@ -36,7 +39,7 @@ surf=$9 ##Sample data to individuals surface after running preprocessing.
 warpTemp=${10} #this is the hardCoded name of the template files below, add another if the one you want isn't here
 tempFiles=${11}
 
-echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $tempFiles"
+echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles"
 
 
 surfID="PREP.A${ART}_C${CompCorr}_M${motionReg}"
@@ -102,6 +105,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			mv W_rest${restNum}_vr_${volID}.nii.gz ${templateDir}/Wrest${restNum}.nii.gz
 			mv rest${restNum}_vr_${volID}.nii.gz ${templateDir}/rest${restNum}_vr.nii.gz
 			mv rest${restNum}_vr_motion_${volID}.1D ${templateDir}/rest${restNum}_vr_motion.1D
+			mv rstrip.anat${restNum}.nii.gz ${templateDir}/
 			gunzip ${templateDir}/rest${restNum}_vr.nii.gz
 			if [[ $restNum < 2 ]];then
 				export MCRROOT="/usr/local/matlab-compiler/v80"
@@ -257,7 +261,6 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 		compReg=0
 	fi
 	1dBport -input ${templateDir}/Wrest1.nii.gz -band 0.008 0.1 -nozero -invert > tmp_bport.txt
-	numBandReg=$(head -n1 tmp_bport.txt | wc -w)
 	numBandReg=$(expr 2 + $numBandReg)
 	scanTRs=$(3dinfo -nv ${templateDir}/Wrest1.nii.gz)
 	numTotalTRs=$(expr $scanTRs \* $numRest)
@@ -315,7 +318,7 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 		##RUN FS ON SUBJECT
 		cd $SUBJECTS_DIR
 		recon-all -openmp 4 -all -subject $sub
-		##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLE
+		##ALIGN FS SURFACES TO STANDARD MESH AND MAKE SUMA READABLEF
 		cd ${SUBJECTS_DIR}/${sub}
 		@SUMA_Make_Spec_FS -use_mgz -sid $sub -ld 141 -ld 60 -ld 30 #ld of 30 should be about equivelnt to number of gray matter voxels in a 4X4X4mm analysis in CWAS
 	elif [[ ! -f ${wd}/${subjName}/SUMA/std.141.rh.thickness.niml.dset ]];then
@@ -333,7 +336,7 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	mkdir -p tmp
 	cd tmp
 	###Align all volume files to Surface space
-	3dcalc -a ${prepDir}/rstrip.anat1.nii.gz -expr 'a' -prefix rstrip.anat
+	3dcalc -a ${templateDir}/rstrip.anat1.nii.gz -expr 'a' -prefix rstrip.anat
 	3dcalc -a ${wd}/${subjName}/SUMA/aparc.a2009s+aseg_rank.nii -expr 'a' -prefix aparc.a2009s+aseg_rank
 	3dcalc -a ${wd}/${subjName}/SUMA/aseg_rank.nii -expr 'a' -prefix aseg_rank
 	3dcalc -a ${wd}/${subjName}/SUMA/aparc+aseg_rank.nii -expr 'a' -prefix aparc+aseg_rank
