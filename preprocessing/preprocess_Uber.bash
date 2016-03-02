@@ -49,13 +49,13 @@ templateDir="${wd}/${subjName}/template_${warpTemp}_files" #Idea is that all war
 
 if [ $warpTemp == "n7.WSTDDUP.MNI" ];then
 	#mask="/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii"
-	echo "Using 10M templates"
+	echo "Using WS Dup Kid templates"
 	regMask="/data/elliottml/rest10M/templates/mask.1_brain_combined_ws_td_dupn7template_MNI_restVox.nii"
 	template=/data/elliottml/rest10M/templates/T1_combined_ws_td_dupn7template_MNI_1.5.nii
 	stripTemplate=/data/elliottml/rest10M/templates/brain_combined_ws_td_dupn7template_MNI_1.5.nii
 	brainmask=/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii
 elif [ $warpTemp == "n240.SagVols.MNI" ];then
-	echo "using COBRE templates"
+	echo "using adult 240 sagVols templates"
 	regMask="/data/elliottml/COBRE/templates/mask.1_T1_dartel_strip_240sagvols_SOINrestVox.nii"
 	template=/data/elliottml/COBRE/templates/T1_dartel_avg_240sagvols_1.5mm_MNI.nii
 	stripTemplate=/data/elliottml/COBRE/templates/T1_dartel_strip_240sagvols_1.5mm_MNI.nii
@@ -271,7 +271,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 
 	cat regressors*_IN.1D > allRegressors.1D
 	if [[ $len == 0 ]];then
-		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
+		3dTproject -PREP.A.5_3_CT_M6_WTn7.WSTDDUPinput ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
 	else
 		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
 	fi
