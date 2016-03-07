@@ -239,7 +239,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 				1deval -a outliers${restNum}_reform.1D -expr "a+$cenTRdelta" > outliers${restNum}_cenFixed.1D
 			
 				out_array=($(less outliers${restNum}_cenFixed.1D)) # don't need additional to account for concating with multiplier when removing from FD
-				echo ${out_array[@]} > tmp_cen_$restNum #used later for censoring
+				echo ${out_array[@]} > cenArray_$restNum #used later for censoring
 				if [[ $lenout -gt 0 ]];then
 					for i in ${out_array[@]}; do out_array[$count]=$(expr $i + 1); ((count++));done # add one so correct lines of movement file are remove, these are not zero indexed like art output and afni censoring
 					out_form=$(echo "$(echo ${out_array[@]} | sed 's/ /d;/g')d") #remove all lines that art said to remove, using above formatting	
@@ -260,15 +260,18 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	echo ""; echo "#################"; echo "bandpass filtering, detrending and blurring rest data"; echo "#################"
 	scanTRs=$(3dinfo -nv ${templateDir}/Wrest1.nii.gz)
 	numTotalTRs=$(expr $scanTRs \* $numRest)
-	cen=$(paste -d " " tmp_cen_*) #get Trs to censor for the all rests concatenated together
+	cen=$(paste -d " " cenArray_*) #get Trs to censor for the all rests concatenated together
 	echo $cen > outliers_concat.1D
 	len=$(echo $cen | wc -w)
 	cat regressors*_IN.1D > allRegressors.1D
 	if [[ $len == 0 ]];then
-		3dTproject -PREP.A.5_3_CT_M6_WTn7.WSTDDUPinput ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
+		echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth"
+		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
 	else
+		echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen"
 		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
 	fi
+	echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth"
 	3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth
 
 	3dresample -master concat_blurat${smooth}mm_bpss_${volID}.nii.gz -inset $brainmask -prefix brainmask_2funcgrid_${volID}.nii.gz
@@ -284,7 +287,7 @@ fi
 #steps: run preprocessing without warp or smooth, run recon-all if not run, run SUMAMakeSpec if not run, sample rest to surface, SurfSmooth
 
 
-if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat${smooth}mm_bpss_${surfID}.nii ]];then
+if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat${smooth}mm_bpss_${surfID}.nii.gz ]] && [[ ! -f ${surfPrepDir}/std.30.${subjName}_lh.concat_SurfSmooth10mm_bpss_${surfID}.1D.dset ]];then
 	echo "processing Surfaces"	
 	mkdir -p $surfPrepDir
 	cd $surfPrepDir
@@ -292,8 +295,10 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	surfCen=$(3dinfo ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz | grep CENSOR | sed 's/.*CENSORTR //g') ##dinky workaround to get censored trs from art
 	surfLen=$(echo $surfCen | wc -w)
 	if [[ $surfLen == 0 ]];then
+		echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10"
 		3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
 	else
+		echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen"
 		3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
 	fi
 	if [[ ! -f ${wd}/${subjName}/surf/rh.sphere ]];then

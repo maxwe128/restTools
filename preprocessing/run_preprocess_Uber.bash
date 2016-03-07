@@ -50,39 +50,6 @@ else
 	bash ${scriptsDir}/mallocFighter.bash ${cwd}/swarm.preprocess_Uber_$timeID
 
 	#Nothing below that is commented should be needed but keeping for now in case malloc fighter busts
-	<<COMMENT
-	jobID=$(swarm -f swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh --time 24:00:00 --logdir LOGS ##-noht  ##This may help solve malloc issue)
-
-	###Run malloc fighter on LOGs that have been written to ./LOGS/preProcess_Uber.$i.$ID
-	#Check if jobs are running, check for malloc until there are no jobs left. If malloc, kill job, send command to new swarm file, rerun swarm with malloc fighter for new swarm jobID
-	numJobs=$(sjobs | grep $jobID | wc -l)
-	while [ ${numJobs} -gt 0 ];do
-		mallocList=""
-		for i in $(cat swarm.preprocess_Uber_$timeID | cut -d " " -f5);do 
-			checkMal=$(grep malloc ./LOGS/preProcess_Uber.${i}* | wc -w)
-			if [[ $checkMal -gt 0 ]];then
-				list=$(echo $list $i)
-			fi
-		done
-		malLen=$(echo $mallocList | wc -w)
-		if [[ $malLen -gt 0 ]];then
-			for i in $(echo $mallocList);do
-				jobNum=$(grep -n $i swarm.preprocess_Uber_$timeID)
-				badJob=$(echo "$jobNum - 1" | bc)
-				scancel ${jobID}_${badJob}
-				newTimeID=$(date "+%Y-%m-%d_%H:%M:%S")
-				grep -n $iswarm.preprocess_Uber_$timeID >> $cwd/swarm.preprocess_Uber_$newTimeID
-			done
-			#call command that you need to create that does the same thing you just did, but calls itself recursively so that it recylcels mallocs until they are done
-			#takes a swarm file in and runs the swarm until it is done, while constructing a swarm file of mallocs, then calls itself
-			
-		fi
-	
-		#Use recursion to rerun malloc errors that emerged in this instance of calling mallocFighter
-		bash ${scriptsDir}/mallocFighter.bash ${cwd}/swarm.preprocess_Uber_$newTimeID
-		numJobs=$(sjobs | grep $jobID | wc -l)
-	done
-	COMMENT
 
 fi
 
