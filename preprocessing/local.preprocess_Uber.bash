@@ -134,6 +134,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	#fi
 	if [ $ART != F ];then
 		if [[ -s cenArray_1 ]];then
+			echo "skipping Art, already ran"
 		else
 			echo "!!!!!!!!!!!!!!!!!!!!!!";echo "!!!!!!!!!!!!!!!!!!!!!!";echo "!!!!!!!!!!!!!!!!!!!!!!";echo "no outliers file, run this through biowulf again or make sure you know what you are doing"
 			echo "exiting"
