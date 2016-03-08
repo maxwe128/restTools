@@ -25,6 +25,7 @@ while [ ${numJobs} -gt 0 ];do
 	mallocList=""
 	for i in $(cat $swarmFile | cut -d " " -f5);do 
 		checkMal=$(grep malloc ${scriptsDir}/LOGS/preProcess_Uber.${i}* | wc -w)
+		checkFatal=$(grep Fatal ${scriptsDir}/LOGS/preProcess_Uber.${i}* | wc -w)
 		if [[ $checkMal -gt 0 ]];then
 			mallocList=$(echo $mallocList $i)
 			#if there is a malloc, clear Log so it doesnt keep getting picked up		
@@ -45,8 +46,12 @@ while [ ${numJobs} -gt 0 ];do
 			#	rm -r $volPrepDir
 			#fi
 		fi
+		if [[ $checkFatal -gt 0 ]];then
+			fatalList=$(echo $fatalList $i)
+		fi
 	done
 	malLen=$(echo $mallocList | wc -w)
+	fatalLen=$(echo $fatalList | wc -w)
 	if [[ $malLen -gt 0 ]];then
 		for i in $(echo $mallocList);do
 			jobNum=$(grep -n $i $swarmFile | cut -d ":" -f1)
@@ -62,7 +67,18 @@ while [ ${numJobs} -gt 0 ];do
 		echo "no mallocs during this check, waiting 1 minute before checking again";echo "###############################"
 		sleep 1m		
 	fi
-	
+	if [[ $fatalLen -gt 0 ]];then
+		for i in $(echo $mallocList);do
+			jobNum=$(grep -n $i $swarmFile | cut -d ":" -f1)
+			badJob=$(echo "$jobNum - 1" | bc)
+			scancel ${jobID}_${badJob}
+			grep -n $i $swarmFile | cut -d ":" -f2 | sed 's./data/elliottml./helix/data.g' | sed 's/preprocess_Uber.bash/local.preprocess_Uber.bash/g' >> ${cwd}/local.reRunSerially_$timeID
+		done
+		#call command that you need to create that does the same thing you just did, but calls itself recursively so that it recylcles mallocs until they are done
+		#takes a swarm file in and runs the swarm until it is done, while constructing a swarm file of mallocs, then calls itself
+		echo "!!!!!!!!!!Fatal Signal Found, You need to run ${cwd}/local.reRunSerially_$timeID locall, hopefully its not too big, otherwise complain to afni guys";echo "###############################"
+		sleep 1m		
+	fi
 	#Use recursion to rerun malloc errors that emerged in this instance of calling mallocFighter
 	numJobs=$(sjobs | grep $jobID | wc -l)
 done

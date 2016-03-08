@@ -93,9 +93,12 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			3dvolreg -tshift 0 -prefix rest${restNum}_vr_${volID}.nii.gz -base tmp_rest1_0.nii.gz'[0]' -1Dfile rest${restNum}_vr_motion_${volID}.1D tmp_rest${restNum}_cut+orig.
 			echo ""; echo "#################"; echo "starting spatial normalization and spm5 coregistration"; echo "#################"
 			cp ../anat.nii.gz ./anat${restNum}.nii.gz
-			$scriptsDir/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz $scriptsDir
-			#kill %1
-			WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${volID}.nii.gz W_rest${restNum}_vr_${volID}.nii.gz -R template_tmp_rest${restNum}_0.nii.gz Wanat${restNum}_Warp.nii.gz Wanat${restNum}_Affine.txt --use-NN
+			if [[ $restNum -eq 1 ]];then
+				@Align_Centers -1Dmat_only -base tmp_rest1_0.nii.gz -cm -dset anat${restNum}.nii.gz -overwrite
+				mv anat${restNum}_shft.nii.gz anat${restNum}.nii.gz 
+				$scriptsDir/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz $scriptsDir
+			fi
+			WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${volID}.nii.gz W_rest${restNum}_vr_${volID}.nii.gz -R template_tmp_rest1_0.nii.gz Wanat1_Warp.nii.gz Wanat1_Affine.txt --use-NN
 			3drefit -space MNI -view tlrc W_rest${restNum}_vr_${volID}.nii.gz
 			echo ""; echo "#################"; echo "segmenting anatomic scan "; echo "#################"
 			if [[ $restNum < 2 ]];then
@@ -294,12 +297,16 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	cp ${prepDir}/allRegressors.1D ./
 	surfCen=$(3dinfo ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz | grep CENSOR | sed 's/.*CENSORTR //g') ##dinky workaround to get censored trs from art
 	surfLen=$(echo $surfCen | wc -w)
-	if [[ $surfLen == 0 ]];then
-		echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10"
-		3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
+	if [[ ! -f  ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz ]];then
+		if [[ $surfLen == 0 ]];then
+			echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10"
+			3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
+		else
+			echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen"
+			3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
+		fi
 	else
-		echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen"
-		3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
+		echo "vol4surf.concat_bpss_${surfID}.nii.gz already created, skipping remaking it"
 	fi
 	if [[ ! -f ${wd}/${subjName}/surf/rh.sphere ]];then
 		echo "Creating surfaces with Freesurfer and MakeSpec"
