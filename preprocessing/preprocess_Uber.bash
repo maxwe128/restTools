@@ -211,7 +211,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	if [ $ART != F ];then
 		if [[ ! -s ${prepDir}/meanFD_cens.txt ]];then # check if file is empty (not not empty)
 			gunzip ${templateDir}/rest*_vr.nii.gz
-			cp ${templateDir}/rest*_vr.nii ./
+			cp ${templateDir}/rest*_vr.nii ./ # this is for avoiding the weird Fatal signal 11 error
 			for restNum in $(seq 1 $numRest);do
 				echo ""; echo "############################ running ART censoring ######################"
 				###Setup cfg file
@@ -297,13 +297,14 @@ if [[ $surf == T ]] && [[ ! -f ${surfPrepDir}/volData.NonCortical.concat_blurat$
 	cp ${prepDir}/allRegressors.1D ./
 	surfCen=$(3dinfo ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz | grep CENSOR | sed 's/.*CENSORTR //g') ##dinky workaround to get censored trs from art
 	surfLen=$(echo $surfCen | wc -w)
+	cp ${templateDir}/rest*_vr.nii ./ # this is for avoiding the weird Fatal signal 11 error
 	if [[ ! -f  ${surfPrepDir}/vol4surf.concat_bpss_${surfID}.nii.gz ]];then
 		if [[ $surfLen == 0 ]];then
-			echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10"
-			3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
+			echo "3dTproject -input ./rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10"
+			3dTproject -input ./rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10
 		else
-			echo "3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen"
-			3dTproject -input ${templateDir}/rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
+			echo "3dTproject -input ./rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen"
+			3dTproject -input ./rest*_vr.nii -prefix vol4surf.concat_bpss_${surfID}.nii.gz -ort allRegressors.1D -polort 1 -bandpass 0.008 0.10 -CENSORTR $surfCen
 		fi
 	else
 		echo "vol4surf.concat_bpss_${surfID}.nii.gz already created, skipping remaking it"
@@ -373,7 +374,7 @@ if [[ $tempFiles == F ]];then
 	gzip -f *.nii
 	cd $surfPrepDir
 	3dcalc -a tmp/anat_Alnd_exp+orig. -expr 'a' -prefix anat_Alnd_exp.nii
-	rm -r tmp
+	rm -r tmp ./rest*_vr.nii.gz
 	gzip -f *.nii
 else
 	echo "keeping Files"

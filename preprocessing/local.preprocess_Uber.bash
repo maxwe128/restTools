@@ -72,8 +72,9 @@ cd $prepDir
 
 #setup matlab MCR env variables
 echo "here $pwd"
-if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 		for restNum in $(seq 1 $numRest);do
+			rm rest${restNum}_vr_motion.1D
+			cp ${templateDir}/rest${restNum}_vr_motion.1D ./
 			numTR=$(cat ${templateDir}/rest1_vr_motion.1D | wc -l)
 			rm regressors${restNum}.1D
 			for j in $(seq 1 $numTR);do echo $j >> regressors${restNum}.1D; done
@@ -84,8 +85,6 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			fi
 
 			if [ $motionReg > 0 ];then
-				rm rest${restNum}_vr_motion.1D
-				cp ${templateDir}/rest${restNum}_vr_motion.1D ./
 				echo ""; echo "############################ setting up motion Regression #################"
 				1d_tool.py -infile rest${restNum}_vr_motion.1D -derivative -write rest${restNum}_vr_motion_deriv.1D
 				for i in $(seq 0 1 5);do
@@ -148,6 +147,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	echo $cen > outliers_concat.1D
 	len=$(echo $cen | wc -w)
 	cat regressors*_IN.1D > allRegressors.1D
+if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	if [[ $len == 0 ]];then
 		echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth"
 		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
