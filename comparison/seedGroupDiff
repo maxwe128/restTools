@@ -1,0 +1,94 @@
+#!/bin/bash
+
+##################################seedGroupDiff.bash##############################
+####################### Authored by Max Elliott 3/11/2016 ####################
+
+####Description####
+#Made to assume your pipeline of preprocess_Uber.bash was run and from that grabs relevant information to efficently find needed information and create covariates to run 3dttest++
+
+group1SubList=$1
+group2SubList=$2
+exampleData=$3 #should be the full path to a dataset, from assumptions will be made to find prep dir, sub dirs and files from all subjects in first 2 args
+outDir=$4 #needs to be full path
+covCodes=$5 # format is age.sex.motionFD, where each is a T or F, for example if you want just age and sex covariates you would input T.T.F
+seedMask=$6
+grayMask=$7
+prefix=$8
+tempFiles=$9 # T or F do you want to keep tmp files
+maskSelector=$10
+
+if [[ $maskSelector == "" ]];then
+	maskSelector=1
+fi
+####Parse example data for important info
+data=$(echo $exampleData | rev| cut -d "/" -f1 | rev)
+prepDir=$(echo $exampleData | rev| cut -d "/" -f2 | rev)
+baseDir=$(echo $exampleData | rev| cut -d "/" -f4- | rev)
+#all data will be in the form of $baseDir/$sub/$prepDir/$data
+
+
+cd $outDir
+mkdir tmp
+cd tmp
+echo "#!/bin/bash" > $outDir/$prefix.ttestCommand.bash
+echo "3dttest++ -setA Group1 \\" >> $outDir/$prefix.ttestCommand.bash
+for sub in $(cat $group1SubList);do
+	echo "extracting values for $sub"
+	#${baseDir}/${sub}/${prepDir}
+	subData=${baseDir}/${sub}/${prepDir}/$data
+	if [[ ! -f ${outDir}/$prefix.$sub.Z.nii ]];then
+		3dmaskave -quiet -mrange $maskSelector $maskSelector -mask $mask $subData > tmp.$prefix.$sub.maskData.1D
+		3dDeconvolve -quiet -input $subData -polort -1 -num_stimts 1 \
+			-stim_file 1 tmp.$prefix.$sub.maskData.1D -stim_label 1 maskData \
+			-tout -rout -bucket tmp.$prefix.$sub.maskData.decon.nii
+		3dcalc -a tmp.$prefix.$sub.maskData.decon.nii'[4]' -b tmp.$prefix.$sub.maskData.decon.nii'[2]' -expr 'ispositive(b)*sqrt(a)-isnegative(b)*sqrt(a)' -prefix tmp.$prefix.$sub.maskData.R.nii
+		3dcalc -a tmp.$prefix.$sub.maskData.R.nii -expr 'log((1+a)/(1-a))/2' -prefix $prefix.$sub.maskConnData.Z.nii
+		mv $prefix.$sub.maskConnData.Z.nii $outDir
+	fi
+	echo -e "\t$sub $outDir}/$prefix.$sub.maskConnData.Z.nii \\" >> $outDir/$prefix.ttestCommand.bash	
+done
+echo -e "\t-labelA Group1 \\" >> $outDir/$prefix.ttestCommand.bash
+echo -e "\t-setB Group2 \\" >> $outDir/$prefix.ttestCommand.bash	
+for sub in $(cat $group1SubList);do
+	echo "extracting values for $sub"
+	#${baseDir}/${sub}/${prepDir}
+	subData=${baseDir}/${sub}/${prepDir}/$data
+	if [[ ! -f ${outDir}/$prefix.$sub.Z.nii ]];then
+		3dmaskave -quiet -mrange $maskSelector $maskSelector -mask $mask $subData > tmp.$prefix.$sub.maskData.1D
+		3dDeconvolve -quiet -input $subData -polort -1 -num_stimts 1 \
+			-stim_file 1 tmp.$prefix.$sub.maskData.1D -stim_label 1 maskData \
+			-tout -rout -bucket tmp.$prefix.$sub.maskData.decon.nii
+		3dcalc -a tmp.$prefix.$sub.maskData.decon.nii'[4]' -b tmp.$prefix.$sub.maskData.decon.nii'[2]' -expr 'ispositive(b)*sqrt(a)-isnegative(b)*sqrt(a)' -prefix tmp.$prefix.$sub.maskData.R.nii
+		3dcalc -a tmp.$prefix.$sub.maskData.R.nii -expr 'log((1+a)/(1-a))/2' -prefix $prefix.$sub.maskConnData.Z.nii
+		mv $prefix.$sub.maskConnData.Z.nii $outDir
+	fi
+	echo -e "\t$sub $outDir}/$prefix.$sub.maskConnData.Z.nii \\" >> $outDir/$prefix.ttestCommand.bash	
+done
+echo -e "\t-labelB Group2 \\" >> $outDir/$prefix.ttestCommand.bash
+echo -e "\t-center same \\" >> $outDir/$prefix.ttestCommand.bash
+echo -e "\t-mask $grayMask \\" >> $outDir/$prefix.ttestCommand.bash
+echo -e "\t-prefix $prefix.ttest.nii \\" >> $outDir/$prefix.ttestCommand.bash
+echo -e "\t-covariates $covariateFile" >> $outDir/$prefix.ttestCommand.bash
+cd $outDir
+
+###STill need to make covariate file, start here when working on this
+#make covariate file with each of the requested coviarates
+age=$(echo $covCodes | cut -d "." -f1)
+sex=$(echo $covCodes | cut -d "." -f2)
+motion=$(echo $covCodes | cut -d "." -f3)
+
+if [[ $age == "T" ]] || [[ $sex == "T" ]] || [[ $motion == "T" ]];then
+	#construct covariate file
+	for sub in $(cat $group1SubList $group2SubList);do
+		#make Subj column
+	done
+
+	#use if statements to add the rest of the covariate columns
+else
+	echo "no covariates requested"
+fi
+
+if [[ $tempFiles == F ]];then
+	rm -r tmp*
+fi
+bash $prefix.ttestCommand.bash
