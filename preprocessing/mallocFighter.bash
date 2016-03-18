@@ -23,6 +23,7 @@ numJobs=$(sjobs | grep $jobID | wc -l)
 while [ ${numJobs} -gt 0 ];do
 	echo "###############################";echo "there are $numJobs biowulf jobs running within mallocFighter;Currently fighting with swarm job: $jobID"
 	mallocList=""
+	sleep 1m
 	for i in $(cat $swarmFile | cut -d " " -f5);do 
 		checkMal=$(grep malloc ${scriptsDir}/LOGS/preProcess_Uber.${i}* | wc -w)
 		checkFatal=$(grep Fatal ${scriptsDir}/LOGS/preProcess_Uber.${i}* | wc -w)

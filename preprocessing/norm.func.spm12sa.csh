@@ -6,24 +6,8 @@ setenv ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS 4
 setenv PATH  /data/SOIN/ANTS:$PATH 
 set path = ( /data/SOIN/ANTS $path )
 
-set scriptdir = /data/elliottml/00M_rest/scripts/restTools/preprocessing/
-if ($#argv < 2) then 
-	goto endscript
-else if ($#argv == 2) then
-	set func = $1
-	set anat = $2
-	set template_dir = '/data/elliottml/rest10M/templates/'
-	set ants_template = $template_dir/T1_combined_ws_td_dupn7template_MNI_1.5.nii
-	set ants_strip_template = $template_dir/brain_combined_ws_td_dupn7template_MNI_1.5.nii
-	set ants_brainmask = $template_dir/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii
-else if ($#argv == 3) then
-	set func = $1
-	set anat = $2
-	set template_dir = '/data/elliottml/rest10M/templates/'
-	set ants_template = $template_dir/T1_combined_ws_td_dupn7template_MNI_1.5.nii
-	set ants_strip_template = $template_dir/brain_combined_ws_td_dupn7template_MNI_1.5.nii
-	set ants_brainmask = $template_dir/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii
-else if ($#argv < 5) then
+set scriptdir = /data/elliottml/3TC_rest/scripts/restTools/preprocessing/
+if ($#argv < 5) then 
 	goto endscript
 else
 	set func = $1

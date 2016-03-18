@@ -43,6 +43,7 @@ else
 	scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	#####Make Swarm####
 	for i in $(less $subjList);do
+		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFile" > ${scriptsDir}/LOGS/preProcess_Uber.$i.$ID
 		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 	####Run Swarm#####

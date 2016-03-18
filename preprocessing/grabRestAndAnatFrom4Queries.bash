@@ -16,9 +16,9 @@
 
 date=$(date +"%Y%d%m")
 queryToRun="bash;date=$(date +"%Y%d%m");sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_nonotes_20151202.txt /x/Rdrive/Max/queries/restNoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MR750_Rest_withnotes_20151202.sql /x/Rdrive/Max/queries/restWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/anatnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MEMPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/anatWithNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_nonotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEnoNotes_$date;sindb_query.py /x/Rdrive/Max/queries/MPRAGE_withnotes_20151202.txt /x/Rdrive/Max/queries/MPRAGEwithNotes_$date"
-wd=/helix/data/00M_rest
+wd=/helix/data/3TC_rest
 cd $wd
-if [[ ! -f /helix/data/00M_rest/lists/restNoNotes_$date ]];then
+if [[ ! -f /helix/data/3TC_rest/lists/restNoNotes_$date ]];then
 	echo ""
 	echo "You need to run the sinDB query"
 	echo "use your sindb userName and Password"
@@ -29,32 +29,32 @@ if [[ ! -f /helix/data/00M_rest/lists/restNoNotes_$date ]];then
 	echo ""
 	echo "then run this as yourself:"
 	echo "
-	date=$(date +"%Y%d%m");mv /x/Rdrive/Max/queries/restNoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/restWithNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatNoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/anatWithNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/MPRAGEnoNotes_$date /helix/data/00M_rest/lists/;mv /x/Rdrive/Max/queries/MPRAGEwithNotes_$date /helix/data/00M_rest/lists/
+	date=$(date +"%Y%d%m");mv /x/Rdrive/Max/queries/restNoNotes_$date /helix/data/3TC_rest/lists/;mv /x/Rdrive/Max/queries/restWithNotes_$date /helix/data/3TC_rest/lists/;mv /x/Rdrive/Max/queries/anatNoNotes_$date /helix/data/3TC_rest/lists/;mv /x/Rdrive/Max/queries/anatWithNotes_$date /helix/data/3TC_rest/lists/;mv /x/Rdrive/Max/queries/MPRAGEnoNotes_$date /helix/data/3TC_rest/lists/;mv /x/Rdrive/Max/queries/MPRAGEwithNotes_$date /helix/data/3TC_rest/lists/
 	"
 	exit
 fi
-colNames=$(cat /helix/data/00M_rest/lists/restNoNotes_$date | head -n1 | sed $'s/\t/#/g')
+colNames=$(cat /helix/data/3TC_rest/lists/restNoNotes_$date | head -n1 | sed $'s/\t/#/g')
 
 ###Check to make sure my funky # delimeter files will work#######
-restNoNotesCheck=$(grep "#" /helix/data/00M_rest/lists/restNoNotes_$date | wc -l)
-restWithNotesCheck=$(grep "#" /helix/data/00M_rest/lists/restWithNotes_$date | wc -l)
-anatNoNotesCheck=$(grep "#" /helix/data/00M_rest/lists/anatNoNotes_$date | wc -l)
-anatWithNotesCheck=$(grep "#" /helix/data/00M_rest/lists/anatWithNotes_$date | wc -l)
-MPRAGENoNotesCheck=$(grep "#" /helix/data/00M_rest/lists/MPRAGEnoNotes_$date | wc -l)
-MPRAGEWithNotesCheck=$(grep "#" /helix/data/00M_rest/lists/MPRAGEwithNotes_$date | wc -l)
+restNoNotesCheck=$(grep "#" /helix/data/3TC_rest/lists/restNoNotes_$date | wc -l)
+restWithNotesCheck=$(grep "#" /helix/data/3TC_rest/lists/restWithNotes_$date | wc -l)
+anatNoNotesCheck=$(grep "#" /helix/data/3TC_rest/lists/anatNoNotes_$date | wc -l)
+anatWithNotesCheck=$(grep "#" /helix/data/3TC_rest/lists/anatWithNotes_$date | wc -l)
+MPRAGENoNotesCheck=$(grep "#" /helix/data/3TC_rest/lists/MPRAGEnoNotes_$date | wc -l)
+MPRAGEWithNotesCheck=$(grep "#" /helix/data/3TC_rest/lists/MPRAGEwithNotes_$date | wc -l)
 if [[ $restNoNotesCheck -gt 0 ]] || [[ $restWithNotesCheck -gt 0 ]] || [[ $anatNoNotesCheck -gt 0 ]] || [[ $anatWithNotesCheck -gt 0 ]] || [[ $MPRAGENoNotesCheck -gt 0 ]] || [[ $MPRAGEWithNotesCheck -gt 0 ]];then
 	echo "there is a # in one of the queries, this is a problem because this script uses #s for delimeters"
-	echo " run grep "#" /helix/data/00M_rest/lists/restNoNotes_$date;grep "#" /helix/data/00M_rest/lists/restWithNotes_$date;grep "#" /helix/data/00M_rest/lists/anatNoNotes_$date | wc -l;grep "#" /helix/data/00M_rest/lists/anatWithNotes_$date | wc -l;grep "#" /helix/data/00M_rest/lists/MPRAGEnoNotes_$date | wc -l;grep "#" /helix/data/00M_rest/lists/MPRAGEwithNotes_$date | wc -l"
+	echo " run grep "#" /helix/data/3TC_rest/lists/restNoNotes_$date;grep "#" /helix/data/3TC_rest/lists/restWithNotes_$date;grep "#" /helix/data/3TC_rest/lists/anatNoNotes_$date | wc -l;grep "#" /helix/data/3TC_rest/lists/anatWithNotes_$date | wc -l;grep "#" /helix/data/3TC_rest/lists/MPRAGEnoNotes_$date | wc -l;grep "#" /helix/data/3TC_rest/lists/MPRAGEwithNotes_$date | wc -l"
 	echo "then consider removing the # from the file that returns a result, otherwith you need to edit this script so it uses a smarter delimeter than Max could think of"
 	exit
 fi
 
-cat /helix/data/00M_rest/lists/restNoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/restNoNotes_$date.hashsv #using weird delimeter to avoid in inadvertant matches in file
-cat /helix/data/00M_rest/lists/restWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/restWithNotes_$date.hashsv
-cat /helix/data/00M_rest/lists/anatNoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatNoNotes_$date.hashsv
-cat /helix/data/00M_rest/lists/anatWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatWithNotes_$date.hashsv
-cat /helix/data/00M_rest/lists/MPRAGEnoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/MPRAGEnoNotes_$date.hashsv
-cat /helix/data/00M_rest/lists/MPRAGEwithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/MPRAGEwithNotes_$date.hashsv
+cat /helix/data/3TC_rest/lists/restNoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/restNoNotes_$date.hashsv #using weird delimeter to avoid in inadvertant matches in file
+cat /helix/data/3TC_rest/lists/restWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/restWithNotes_$date.hashsv
+cat /helix/data/3TC_rest/lists/anatNoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatNoNotes_$date.hashsv
+cat /helix/data/3TC_rest/lists/anatWithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/anatWithNotes_$date.hashsv
+cat /helix/data/3TC_rest/lists/MPRAGEnoNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/MPRAGEnoNotes_$date.hashsv
+cat /helix/data/3TC_rest/lists/MPRAGEwithNotes_$date | sed 's/"//g' | tail -n +3 | sed $'s/\t/#/g'  > $wd/lists/MPRAGEwithNotes_$date.hashsv
 while read subScan;do
 	race=$(echo $subScan | cut -f4 -d "#")
 	diagnoses=$(echo $subScan | cut -f6 -d "#")
@@ -247,8 +247,8 @@ while read subScan;do
 		fi
 	else
 		echo "##############################################################"
-		echo "Weird DOB for $obscureName, skipping a tarball, check error log in /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error"
-		echo "$subScan" >> /helix/data/00M_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error
+		echo "Weird DOB for $obscureName, skipping a tarball, check error log in /helix/data/3TC_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error"
+		echo "$subScan" >> /helix/data/3TC_rest/scripts/LOGS/grabRestAndAnatFrom4Queries_$date.error
 		echo "##############################################################"
 	fi
 done < $wd/lists/restNoNotes_$date.hashsv
