@@ -87,9 +87,9 @@ if [[ $age == "T" ]] || [[ $sex == "T" ]] || [[ $motion == "T" ]];then
 	echo "Subj" >> $outDir/tmp.${prefix}/firstColumn.subs.covFile.txt
 	helix=$(echo $baseDir | cut -d "/" -f2) #check if you are on helix or biowulf
 	if [[ $helix == "helix" ]];then
-		linkPointer="helix"
+		linkPointer="local"
 	else
-		linkPointer="biowulf"
+		linkPointer="bwulf"
 	fi
 	for sub in $(cat $group1SubList $group2SubList);do
 		#make Subj column
