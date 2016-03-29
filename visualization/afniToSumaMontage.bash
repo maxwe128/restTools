@@ -1,11 +1,11 @@
 #!/bin/bash
 func=$1
-anat=$1 #can be same file as above
+anat=$2 #can be same file as above
 npb=19 #can change if you have a lot of afnis open
-tvalue=$2
-mesh=$3 # can be pial, inflated, sphere or white
-surf=$4
-Tsb=$5 #subbrick that you want to threshold on
+tvalue=$3
+mesh=$4 # can be pial, inflated, sphere or white
+surf=$5
+Tsb=$6 #subbrick that you want to threshold on
 
 if [[ $# < 5 ]];then
 	echo "
@@ -18,10 +18,14 @@ if [[ $# < 5 ]];then
 	"
 else
 
+afniAnat=$(echo $anat | rev | cut -d "/" -f1 | rev)
+afniFunc=$(echo $func | rev | cut -d "/" -f1 | rev)
+scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 if [[ $mesh = inflated ]];then
-	view=/x/wmn18/elliottml/sulcalDepth10M/scripts/inflatedView.niml.vvs
+	view=${scriptsDir}/inflatedView3.vvs
 else
-	view=/x/wmn18/elliottml/sulcalDepth10M/scripts/pialView5.niml.vvs
+	view=${scriptsDir}/inflatedView2.vvs
 fi
 
 suma -niml -npb $npb -spec $surf -sv $anat &
@@ -29,9 +33,9 @@ afni -niml -yesplugouts -npb $npb $anat $func &
 sleep 15
 DriveSuma -npb $npb -com viewer_cont -key 't'
 sleep 5
-plugout_drive -npb $npb -com 'SET_FUNC_VISIBLE +' -quit
-plugout_drive -npb $npb -com "SWITCH_UNDERLAY $anat" -com "SWITCH_OVERLAY $func" -com 'SET_THRESHOLD .1 2' -com 'SET_PBAR_NUMBER 12' -com "SET_THRESHNEW A $tvalue"  -quit
-DriveSuma -npb $npb -com surf_cont -switch_surf lh.inflated
+#-com 'SET_FUNC_VISIBLE +'
+plugout_drive -npb $npb -com "SWITCH_UNDERLAY $afniAnat" -com "SWITCH_OVERLAY $afniFunc" -com 'SET_THRESHOLD .1 2' -com 'SET_PBAR_NUMBER 12' -com "SET_THRESHNEW A $tvalue"  -quit
+DriveSuma -npb $npb -com surf_cont -switch_surf lh.${mesh}
 DriveSuma -npb $npb -com viewer_cont -load_view $view
 
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+left \

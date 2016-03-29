@@ -265,17 +265,18 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	numTotalTRs=$(expr $scanTRs \* $numRest)
 	cen=$(paste -d " " cenArray_*) #get Trs to censor for the all rests concatenated together
 	echo $cen > outliers_concat.1D
+	3dresample -input $regMask -master ${templateDir}/Wrest*.nii.gz -prefix tmp.c1Mask.nii
 	len=$(echo $cen | wc -w)
 	cat regressors*_IN.1D > allRegressors.1D
 	if [[ $len == 0 ]];then
-		echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth"
-		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth
+		echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask tmp.c1Mask.nii -bandpass 0.008 0.10 -blur $smooth"
+		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask tmp.c1Mask.nii -bandpass 0.008 0.10 -blur $smooth
 	else
-		echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen"
-		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask $regMask -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
+		echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask tmp.c1Mask.nii -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen"
+		3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_blurat${smooth}mm_bpss_${volID}.nii.gz -ort allRegressors.1D -polort 1 -mask tmp.c1Mask.nii -bandpass 0.008 0.10 -blur $smooth -CENSORTR $cen
 	fi
-	echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth"
-	3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask $regMask -blur $smooth
+	echo "3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask tmp.c1Mask.nii -blur $smooth"
+	3dTproject -input ${templateDir}/Wrest*.nii.gz -prefix concat_RAW_blurat${smooth}mm.nii.gz -mask tmp.c1Mask.nii -blur $smooth
 
 	3dresample -master concat_blurat${smooth}mm_bpss_${volID}.nii.gz -inset $brainmask -prefix brainmask_2funcgrid_${volID}.nii.gz
 else
