@@ -10,11 +10,12 @@ Tsb=$6 #subbrick that you want to threshold on
 if [[ $# < 5 ]];then
 	echo "
 	Not enough arguments passed need at least
-	1)dataList
-	2)outDir
-	3)prefix
-	4)prepUber
-	5)tmpFiles
+	1)func
+	2)anat
+	3)tvalue
+	4)mesh(pial,inflated,sphere or white)
+	5)surface
+	6)threshold subbrick
 	"
 else
 
