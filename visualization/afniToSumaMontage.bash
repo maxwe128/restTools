@@ -25,12 +25,6 @@ afniAnat=$(echo $anat | rev | cut -d "/" -f1 | rev)
 afniFunc=$(echo $func | rev | cut -d "/" -f1 | rev)
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-if [[ $mesh = inflated ]];then
-	view=${scriptsDir}/inflatedView3.vvs
-else
-	view=${scriptsDir}/inflatedView2.vvs
-fi
-
 suma -niml -npb $npb -spec $surf -sv $anat &
 afni -niml -yesplugouts -npb $npb $anat $func &
 sleep 15
@@ -40,7 +34,7 @@ sleep 5
 plugout_drive -npb $npb -com "SWITCH_UNDERLAY $afniAnat" -com "SWITCH_OVERLAY $afniFunc" -com 'SET_THRESHOLD .1 2' -com 'SET_PBAR_NUMBER 12' -com "SET_SUBBRICKS -1 $Fsb $Tsb" -com "SET_THRESHNEW A $tvalue" -quit
 #sleep 10
 DriveSuma -npb $npb -com surf_cont -switch_surf lh.${mesh}
-DriveSuma -npb $npb -com viewer_cont -load_view $view
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/inflatedViewLateral.niml.vvs
 DriveSuma -npb $npb -com viewer_cont -key F4 -com viewer_cont -key F5 -com viewer_cont -key F9
 
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+left \
@@ -49,12 +43,15 @@ DriveSuma -npb $npb -com  recorder_cont -save_as tmp1.png
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+right \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp2.png
-DriveSuma -npb $npb  -com viewer_cont -key ctrl+up \
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/inflatedViewDorsal.niml.vvs
+DriveSuma -npb $npb  -com viewer_cont -key ctrl+up -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp3.png
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/inflatedViewPosterior.niml.vvs
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+shift+up \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp4.png
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/inflatedViewMedial.niml.vvs
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+right \
 	-com viewer_cont -key ] \
 	-com viewer_cont -key r
@@ -64,10 +61,12 @@ DriveSuma -npb $npb  -com viewer_cont -key ] \
 	-com viewer_cont -key ctrl+left \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp6.png
-DriveSuma -npb $npb  -com viewer_cont -key ctrl+down \
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/inflatedViewVentral.niml.vvs
+DriveSuma -npb $npb  -com viewer_cont -key ctrl+down -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right \
 	-com viewer_cont -key [ \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp7.png
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/inflatedViewAnterior.niml.vvs
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+shift+down \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp8.png
@@ -77,4 +76,5 @@ imcat -prefix $prefix -matrix 4 2 tmp*.png
 rm tmp*.png
 plugout_drive -npb $npb -com "QUIT" -quit
 DriveSuma -npb $npb -com kill_suma
+sleep .5
 fi
