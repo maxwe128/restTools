@@ -7,9 +7,10 @@ mesh=$4 # can be pial, inflated, sphere or white
 surf=$5
 Fsb=$6 #subbrick for func data
 Tsb=$7 #subbrick that you want to threshold on
-prefix=$8
+surfOlay=$8 #Has to be Right hemisphere of surface. typically the seed for a group difference map. Should either be F if you don't want this or the name of the dataset.
+prefix=$9
 
-if [[ $# < 5 ]];then
+if [[ $# < 9 ]];then
 	echo "
 	Not enough arguments passed need at least
 	1)func
@@ -29,8 +30,14 @@ suma -niml -npb $npb -spec $surf -sv $anat &
 afni -niml -yesplugouts -npb $npb $anat $func &
 sleep 15
 DriveSuma -npb $npb -com viewer_cont -key 't'
+##load surf Olay if wanted, doing this first so volume tmap is underneath
 sleep 5
 #-com 'SET_FUNC_VISIBLE +'
+if [[ $surfOlay != "F" ]];then
+	DriveSuma -npb $npb -com surf_cont -load_dset $surfOlay
+	DriveSuma -npb $npb -com surf_cont -1_only n #allow datasets to be viewed together
+	DriveSuma -npb $npb -com surf_cont -switch_cmap green_monochrome #green seems to be the best color to make seeds stand out
+fi
 plugout_drive -npb $npb -com "SWITCH_UNDERLAY $afniAnat" -com "SWITCH_OVERLAY $afniFunc" -com 'SET_THRESHOLD .1 2' -com 'SET_PBAR_NUMBER 12' -com "SET_SUBBRICKS -1 $Fsb $Tsb" -com "SET_THRESHNEW A $tvalue" -quit
 #sleep 10
 DriveSuma -npb $npb -com surf_cont -switch_surf lh.${mesh}
@@ -73,8 +80,9 @@ DriveSuma -npb $npb -com  recorder_cont -save_as tmp8.png
 
 imcat -prefix $prefix -matrix 4 2 tmp*.png
 
-rm tmp*.png
+convert $prefix.ppm $prefix.png
+rm tmp*.png $prefix.ppm
 plugout_drive -npb $npb -com "QUIT" -quit
 DriveSuma -npb $npb -com kill_suma
-sleep .5
+sleep 2
 fi
