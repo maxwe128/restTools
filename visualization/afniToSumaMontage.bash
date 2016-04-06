@@ -5,7 +5,9 @@ npb=19 #can change if you have a lot of afnis open
 tvalue=$3
 mesh=$4 # can be pial, inflated, sphere or white
 surf=$5
-Tsb=$6 #subbrick that you want to threshold on
+Fsb=$6 #subbrick for func data
+Tsb=$7 #subbrick that you want to threshold on
+prefix=$8
 
 if [[ $# < 5 ]];then
 	echo "
@@ -35,28 +37,44 @@ sleep 15
 DriveSuma -npb $npb -com viewer_cont -key 't'
 sleep 5
 #-com 'SET_FUNC_VISIBLE +'
-plugout_drive -npb $npb -com "SWITCH_UNDERLAY $afniAnat" -com "SWITCH_OVERLAY $afniFunc" -com 'SET_THRESHOLD .1 2' -com 'SET_PBAR_NUMBER 12' -com "SET_THRESHNEW A $tvalue"  -quit
+plugout_drive -npb $npb -com "SWITCH_UNDERLAY $afniAnat" -com "SWITCH_OVERLAY $afniFunc" -com 'SET_THRESHOLD .1 2' -com 'SET_PBAR_NUMBER 12' -com "SET_SUBBRICKS -1 $Fsb $Tsb" -com "SET_THRESHNEW A $tvalue" -quit
+#sleep 10
 DriveSuma -npb $npb -com surf_cont -switch_surf lh.${mesh}
 DriveSuma -npb $npb -com viewer_cont -load_view $view
+DriveSuma -npb $npb -com viewer_cont -key F4 -com viewer_cont -key F5 -com viewer_cont -key F9
 
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+left \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp1.png
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+right \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp2.png
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+up \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp3.png
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+shift+up \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp4.png
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+right \
 	-com viewer_cont -key ] \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp5.png
 DriveSuma -npb $npb  -com viewer_cont -key ] \
 	-com viewer_cont -key [ \
 	-com viewer_cont -key ctrl+left \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp6.png
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+down \
 	-com viewer_cont -key [ \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp7.png
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+shift+down \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp8.png
+
+imcat -prefix $prefix -matrix 4 2 tmp*.png
+
+rm tmp*.png
+plugout_drive -npb $npb -com "QUIT" -quit
+DriveSuma -npb $npb -com kill_suma
 fi
