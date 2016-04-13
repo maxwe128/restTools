@@ -16,15 +16,22 @@ if [[ $# < 10 ]];then
 
 	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} (numberRest} {surface?} {warpTemplate} {keep Temp files?}
 	
-	Example) run_preprocess_Uber.bash ../data_V1/ 10MInclusiveList F .25_3 F 24 10 F
+	Example) run_preprocess_Uber.bash ../data_V1/ 10MInclusiveList F .25_3 F 24 10 2 T n18.WSTD.MNI F
 	##############Intro################
 	This script automates the running of preprocess_Uber.bash so that you can easily preprocess large groups of people with different preprocessing params.
 	It will make a swarm file, write it to the current directory and run the swarm file
 
-	#options that can change: WarpAndSegment- this is made to save space. After it has been ran once on a subject the subject will then have the important files in their parent directory. Then all other preprocessing schemes will rely on these files and you no longer need matlab licences and things move much faster,ART-can adjust censoring params mm and g, COMPcorr-True or False, MOTION REGRESSORS-0, 6(typical),12(adds temproral derivative),18(adds quadratic) or 24(adds temporal derivative of quadratic), BLURRING-FWHM kernel(can be any integer)
-	#
-	#
-	#####input
+	#options that can change: 
+		-WarpAndSegment- this is made to save space. After it has been ran once on a subject the subject will then have the important files in their parent directory. Then all other preprocessing schemes will rely on these files and you no longer need matlab licences and things move much faster
+		-ART-can adjust censoring params mm and g structure "mm_global"
+		-COMPcorr-T of F
+		-MOTION REGRESSORS-0, 6(typical),12(adds temproral derivative),18(adds quadratic) or 24(adds temporal derivative of quadratic)
+		-BLURRING-FWHM kernel(can be any integer)
+		-numberRest-typically 1 or 2 but depending on the dataset you may have many runs of rest you want to concat together
+		-surface- T or F, do you want freesurfer and suma_make_Spec to be run on all subjects and rest data to be processed on surface as well as volume
+		-warpTemplate- options are hard coded into script based on input to warpTemp. Check this script to see what template suites your needs. If none do feel free to add in a hardcoded template using regMask, template, striptemplate and brainmask structure. Look at script for examples
+		-keepTempFiles- T or F, typically answer is F, this will save space. but if you want to debug or see how intermediate files are made than use T
+	####################################
 	"
 else
 wd=$1 #begginning of tree, assumes that all subjects have their own folder within this dir
@@ -63,6 +70,12 @@ elif [ $warpTemp == "n240.SagVols.MNI" ];then
 	template=/data/elliottml/COBRE/templates/T1_dartel_avg_240sagvols_1.5mm_MNI.nii
 	stripTemplate=/data/elliottml/COBRE/templates/T1_dartel_strip_240sagvols_1.5mm_MNI.nii
 	brainmask=/data/elliottml/COBRE/templates/T1_dartel_brainmask_240sagvols_1.5mm_MNI.nii
+elif [ $warpTemp == "n18.WSTD.MNI" ];then
+	echo "using WS TD matched n18 template"
+	regMask=/data/elliottml/3TC_rest/templates/mask.1_WS_TD_n18matchedtemplate_MNI.nii
+	template=/data/elliottml/3TC_rest/templates/WS_TD_n18matchedtemplate_MNI.nii.gz
+	stripTemplate=/data/elliottml/3TC_rest/templates/WS_TD_n18matchedstrip_MNI.nii
+	brainmask=/data/elliottml/3TC_rest/templates/WS_TD_n18matchedbrainmask_MNI.nii.gz
 else
 	echo "no matching brain mask, please make another and input into preprocess_Uber.bash" 
 	exit
@@ -265,7 +278,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	numTotalTRs=$(expr $scanTRs \* $numRest)
 	cen=$(paste -d " " cenArray_*) #get Trs to censor for the all rests concatenated together
 	echo $cen > outliers_concat.1D
-	3dresample -input $regMask -master ${templateDir}/Wrest*.nii.gz -prefix tmp.c1Mask.nii
+	3dresample -input $regMask -master ${templateDir}/Wrest1.nii.gz -prefix tmp.c1Mask.nii
 	len=$(echo $cen | wc -w)
 	cat regressors*_IN.1D > allRegressors.1D
 	if [[ $len == 0 ]];then

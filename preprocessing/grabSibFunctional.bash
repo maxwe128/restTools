@@ -13,7 +13,7 @@
 
 ########################################################################################
 ######################Run this command to use this script from Biowulf###########
-#while read line;do sub=$(echo $line | cut -d "," -f1); num=$(grep $sub /data/elliottml/sibStudy_func/lists/sibstudy_hasAllTasks.csv | wc -l);if [[ $num -gt 0 ]];then echo "cd /data/elliottml/3TC_rest/scripts/restTools/preprocessing;./grabSibFunctional.bash $line" >> swarm."NAME";fi;done< <(tail -n+2 "YOUR SIBSTUDY CSV");swarm -f swarm."NAME" --gres=lscratch:10 --partition nimh
+#while read line;do sub=$(echo $line | cut -d "," -f1); num=$(grep $sub /data/elliottml/sibStudy_func/lists/sibstudy_hasAllTasks.csv | wc -l);if [[ $num -gt 0 ]];then echo "cd /data/elliottml/3TC_rest/scripts/restTools/preprocessing;./grabSibFunctional.bash $line" >> swarm."NAME";fi;done< <(tail -n+2 "YOUR SIBSTUDY CSV");swarm -f swarm."NAME" -g 6 -t 4 --gres=lscratch:10 --partition nimh --logdir /data/elliottml/sibStudy_func/lists/swarmOut
 ############################################################################################
 #################################################################################################
 
@@ -23,7 +23,7 @@ finalDir=/data/elliottml/sibStudy_func/data/
 wd=/lscratch/$SLURM_JOB_ID/   #acess scratch that you have to allocate in swarm call
 #####sort the line
 ##Check if the file is A functional or MPRAGE
-numFields=$(echo $line | grep -o ,| wc -l)
+numFields=$(echo $line | grep -o "," | wc -l)
 if [[ $numFields == 23 ]];then
 	sub=$(echo $line | cut -d "," -f1)
 	scan_id=$(echo $line | cut -d "," -f3)
