@@ -55,7 +55,7 @@ elif [[ $numFields == 21 ]];then
 	dob=$(echo $line | cut -d "," -f12)
 	sex=$(echo $line | cut -d "," -f13)
 	tarbPath=$(echo $line | cut -d "," -f15 | cut -d "/" -f3-) #gets it ready for rsync
-	fid=$(echo $line | cut -d "," -f16)
+	fid=$(echo $line | cut -d "," -f16)$task
 	mis2=$(echo $line | cut -d "," -f17)
 	fid2=$(echo $line | cut -d "," -f18)
 	dob2=$(echo $line | cut -d "," -f20)

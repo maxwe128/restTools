@@ -55,7 +55,7 @@ else
 	#####Make Swarm####
 	for i in $(less $subjList);do
 		#echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFile" > ${scriptsDir}/LOGS/preProcess_Uber.$i.$ID
-		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID" >> $cwd/swarm.preprocess_Uber_$timeID
+		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID.$warpTemp" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 	####Run Swarm#####
 	#now all swarm calls of preprocess_Uber are run through mallocFighter to avoid dumb mallocs

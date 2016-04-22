@@ -70,12 +70,18 @@ elif [ $warpTemp == "n240.SagVols.MNI" ];then
 	template=/data/elliottml/COBRE/templates/T1_dartel_avg_240sagvols_1.5mm_MNI.nii
 	stripTemplate=/data/elliottml/COBRE/templates/T1_dartel_strip_240sagvols_1.5mm_MNI.nii
 	brainmask=/data/elliottml/COBRE/templates/T1_dartel_brainmask_240sagvols_1.5mm_MNI.nii
-elif [ $warpTemp == "n18.WSTD.MNI" ];then
+elif [ $warpTemp == "n18.WSTD.MNI" ];then ##Ants created template
 	echo "using WS TD matched n18 template"
 	regMask=/data/elliottml/3TC_rest/templates/mask.1_WS_TD_n18matchedtemplate_MNI.nii
 	template=/data/elliottml/3TC_rest/templates/WS_TD_n18matchedtemplate_MNI.nii.gz
 	stripTemplate=/data/elliottml/3TC_rest/templates/WS_TD_n18matchedstrip_MNI.nii
 	brainmask=/data/elliottml/3TC_rest/templates/WS_TD_n18matchedbrainmask_MNI.nii.gz
+elif [ $warpTemp == "n16.WSTD.MNI" ];then  ####Dartel created template that Shane is using for VBM
+	echo "using WS TD matched n16 template"
+	regMask=/data/elliottml/3TC_rest/templates/mask.1_T1_ws_td_n16_spm12template_MNI.nii
+	template=/data/elliottml/3TC_rest/templates/T1_ws_td_n16_spm12template_MNI.nii
+	stripTemplate=/data/elliottml/3TC_rest/templates/T1_ws_td_n16_spm12strip_MNI.nii.gz
+	brainmask=/data/elliottml/3TC_rest/templates/n16.WSTDBrainExtractionMask.nii.gz
 else
 	echo "no matching brain mask, please make another and input into preprocess_Uber.bash" 
 	exit
