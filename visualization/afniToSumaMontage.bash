@@ -1,15 +1,16 @@
 #!/bin/bash
-func=$1
-anat=$2 #can be same file as above
+justPic=$1
+func=$2
+anat=$3 #can be same file as above
 npb=19 #can change if you have a lot of afnis open
-tvalue=$3
-clustThresh=$4
-mesh=$5 # can be pial, inflated, sphere or white or smoothwm.SS400 if the makeParInfSpec.bash has been run
-surf=$6
-Fsb=$7 #subbrick for func data
-Tsb=$8 #subbrick that you want to threshold on
-surfOlay=$9 #Has to be Right hemisphere of surface. typically the seed for a group difference map. Should either be F if you don't want this or the name of the dataset.
-prefix=${10}
+tvalue=$4
+clustThresh=$5
+mesh=$6 # can be pial, inflated, sphere or white or smoothwm.SS400 if the makeParInfSpec.bash has been run Or partInf for 
+surf=$7
+Fsb=$8 #subbrick for func data
+Tsb=$9 #subbrick that you want to threshold on
+surfOlay=${10} #Has to be Right hemisphere of surface. typically the seed for a group difference map. Should either be F if you don't want this or the name of the dataset.
+prefix=${11}
 
 if [[ $# < 10 ]];then
 	echo "
@@ -27,10 +28,11 @@ afniAnat=$(echo $anat | rev | cut -d "/" -f1 | rev)
 afniFunc=$(echo $func | rev | cut -d "/" -f1 | rev)
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+if [[ $justPic == "F" ]];then
 if [[ $clustThresh != "F" ]];then
 	funcThresh=$(echo "${func}[$Tsb]")
 	funcData=$(echo "${func}[$Fsb])")
-	clustCommand=$(echo "3dclust -1Dformat -nosum -1dindex 0 -1tindex 0 -2thresh -$tvalue $tvalue -dxyz=1 -savemask tmp_ClustMaskFull.nii 1.01 $clustThresh $funcThresh")
+	clustCommand=$(echo "8 -savemask tmp_ClustMaskFull.nii 1.01 $clustThresh $funcThresh")
 	$clustCommand
 	3dcalc -a tmp_ClustMaskFull.nii -b $funcData -expr 'ispositive(a)*b' -prefix tmp_VisMap.nii
 	afni -niml -yesplugouts -npb $npb $anat tmp_VisMap.nii &
@@ -57,6 +59,7 @@ fi
 #sleep 10
 DriveSuma -npb $npb -com surf_cont -switch_surf lh.${mesh}
 sleep 600
+else
 DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewLateral.niml.vvs
 DriveSuma -npb $npb -com viewer_cont -key F4 -com viewer_cont -key F5 -com viewer_cont -key F9
 
@@ -67,13 +70,19 @@ DriveSuma -npb $npb  -com viewer_cont -key ctrl+right \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp2.png
 DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewDorsal.niml.vvs
-DriveSuma -npb $npb  -com viewer_cont -key ctrl+up -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right \
+if [[ $justPic == "F" ]];then
+	DriveSuma -npb $npb  -com viewer_cont -key ctrl+up -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right \
 	-com viewer_cont -key r
+else
+	DriveSuma -npb $npb  -com viewer_cont -key ctrl+up \
+	-com viewer_cont -key r
+fi
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp3.png
 DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewPosterior.niml.vvs
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+shift+up \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp4.png
+if [[ $justPic == "F" ]];then
 DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewMedial.niml.vvs
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+right \
 	-com viewer_cont -key ] \
@@ -84,10 +93,30 @@ DriveSuma -npb $npb  -com viewer_cont -key ] \
 	-com viewer_cont -key ctrl+left \
 	-com viewer_cont -key r
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp6.png
-DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewVentral.niml.vvs
-DriveSuma -npb $npb  -com viewer_cont -key ctrl+down -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right \
+else
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewMedial.niml.vvs
+DriveSuma -npb $npb  -com viewer_cont -key ctrl+right \
 	-com viewer_cont -key [ \
 	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp5.png
+DriveSuma -npb $npb  -com viewer_cont -key [ \
+	-com viewer_cont -key ] \
+	-com viewer_cont -key ctrl+left \
+	-com viewer_cont -key r
+DriveSuma -npb $npb -com  recorder_cont -save_as tmp6.png
+DriveSuma -npb $npb  -com viewer_cont -key [ \
+	-com viewer_cont -key ]
+fi
+DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewVentral.niml.vvs
+if [[ $justPic == "F" ]];then
+	DriveSuma -npb $npb  -com viewer_cont -key ctrl+down -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right -com viewer_cont -key ctrl+shift+right \
+	-com viewer_cont -key [ \
+	-com viewer_cont -key r
+else
+	DriveSuma -npb $npb  -com viewer_cont -key ctrl+down \
+	-com viewer_cont -key [ \
+	-com viewer_cont -key r
+fi
 DriveSuma -npb $npb -com  recorder_cont -save_as tmp7.png
 DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewAnterior.niml.vvs
 DriveSuma -npb $npb  -com viewer_cont -key ctrl+shift+down \
@@ -98,7 +127,10 @@ imcat -prefix $prefix -matrix 4 2 tmp*.png
 
 convert $prefix.ppm $prefix.png
 rm tmp* $prefix.ppm $prefix.tmp*
-plugout_drive -npb $npb -com "QUIT" -quit
-DriveSuma -npb $npb -com kill_suma
+if [[ $justPic == "F" ]];then
+	plugout_drive -npb $npb -com "QUIT" -quit
+	DriveSuma -npb $npb -com kill_suma
 sleep 2
+fi
+fi
 fi
