@@ -58,7 +58,7 @@ fi
 
 #sleep 10
 DriveSuma -npb $npb -com surf_cont -switch_surf lh.${mesh}
-sleep 600
+#sleep 600
 else
 DriveSuma -npb $npb -com viewer_cont -load_view ${scriptsDir}/${mesh}ViewLateral.niml.vvs
 DriveSuma -npb $npb -com viewer_cont -key F4 -com viewer_cont -key F5 -com viewer_cont -key F9
