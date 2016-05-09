@@ -6,7 +6,7 @@
 ####Description####
 #this worker script for preprocessing resting state data
 
-if [[ $# < 10 ]];then
+if [[ $# -lt 7 ]];then
 	echo "
 	########Requirements###########
 	1)Ants needs to be downloaded and in your path
@@ -14,7 +14,7 @@ if [[ $# < 10 ]];then
 	3)Freesurfer needs to be downloaded and in your path
 	######Call structure############
 
-	preprocess_Uber.bash {working Directory} {subject list} {warp and segment?} {Art params} {CompCorr?} {motion params} {smoothing kernel} (numberRest} {surface?} {warpTemplate} {keep Temp files?}
+	preprocess_Uber.bash {working Directory} {subject list} {Art params} {CompCorr?} {motion params} {smoothing kernel} (numberRest} {surface?} {warpTemplate} {keep Temp files?}
 	
 	Example) run_preprocess_Uber.bash ../data_V1/ 10MInclusiveList F .25_3 F 24 10 2 T n18.WSTD.MNI F
 	##############Intro################
@@ -22,7 +22,6 @@ if [[ $# < 10 ]];then
 	It will make a swarm file, write it to the current directory and run the swarm file
 
 	#options that can change: 
-		-WarpAndSegment- this is made to save space. After it has been ran once on a subject the subject will then have the important files in their parent directory. Then all other preprocessing schemes will rely on these files and you no longer need matlab licences and things move much faster
 		-ART-can adjust censoring params mm and g structure "mm_global"
 		-COMPcorr-T of F
 		-MOTION REGRESSORS-0, 6(typical),12(adds temproral derivative),18(adds quadratic) or 24(adds temporal derivative of quadratic)
@@ -36,17 +35,16 @@ if [[ $# < 10 ]];then
 else
 wd=$1 #begginning of tree, assumes that all subjects have their own folder within this dir
 subjName=$2 #Assumes that in subject folder is a file called anat.nii.gz, rest1.nii.gz and rest2.nii.gz, this is also where I keep FS and SUMA dirs
-WarpAndSegment=$3 #either T or F, Chose T to start preprocessing from beggnining Choose F if you have already Done this
-ART=$4 #should be in form {integer indicating mm movement cutoff within TR}-{integer indicating sd of signal change cutoff}. Example) .25-3. Can also be F for no ART
-CompCorr=$5 #either T or F. Do you want CompCorr run of dataset
-motionReg=$6 #how many motion regressors do you want in preprocessing. See above for details
-smooth=$7 ##smoothing kernel, can be any integer
-numRest=$8
-surf=$9 ##Sample data to individuals surface after running preprocessing.
-warpTemp=${10} #this is the hardCoded name of the template files below, add another if the one you want isn't here
-tempFiles=${11}
+ART=$3 #should be in form {integer indicating mm movement cutoff within TR}-{integer indicating sd of signal change cutoff}. Example) .25-3. Can also be F for no ART
+CompCorr=$4 #either T or F. Do you want CompCorr run of dataset
+motionReg=$5 #how many motion regressors do you want in preprocessing. See above for details
+smooth=$6 ##smoothing kernel, can be any integer
+numRest=$7
+surf=$8 ##Sample data to individuals surface after running preprocessing.
+warpTemp=${9} #this is the hardCoded name of the template files below, add another if the one you want isn't here
+tempFiles=${10}
 
-echo "preprocess_Uber.bash $wd $subjName $WarpAndSegment $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles"
+echo "preprocess_Uber.bash $wd $subjName $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles"
 
 
 surfID="PREP.A${ART}_C${CompCorr}_M${motionReg}"

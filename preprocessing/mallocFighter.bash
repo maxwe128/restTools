@@ -15,7 +15,7 @@ swarmFile=$1
 ####Run Swarm#####
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 timeID=$(date "+%Y-%m-%d_%H:%M:%S")
-jobID=$(swarm -f ${swarmFile} -g 14 -t 4 --partition nimh --time 24:00:00 --logdir ${scriptsDir}/LOGS)
+jobID=$(swarm -f ${swarmFile} -g 14 -t 4 --partition nimh,b1,norm --time 24:00:00 --logdir ${scriptsDir}/LOGS)
 cwd=$(pwd)
 ###Run malloc fighter on LOGs that have been written to ./LOGS/preProcess_Uber.$i.$ID
 #Check if jobs are running, check for malloc until there are no jobs left. If malloc, kill job, send command to new swarm file, rerun swarm with malloc fighter for new swarm jobID
