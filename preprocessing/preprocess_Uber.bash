@@ -80,6 +80,12 @@ elif [ $warpTemp == "n16.WSTD.MNI" ];then  ####Dartel created template that Shan
 	template=/data/elliottml/3TC_rest/templates/T1_ws_td_n16_spm12template_MNI.nii
 	stripTemplate=/data/elliottml/3TC_rest/templates/T1_ws_td_n16_spm12strip_MNI.nii.gz
 	brainmask=/data/elliottml/3TC_rest/templates/n16.WSTDBrainExtractionMask.nii.gz
+elif [ $warpTemp == "n34.PUBERTY.MNI" ];then  ####Dartel created template for Puberty Rest, used by Kathy
+	echo "using WS TD matched n34 Puberty template"
+	regMask=/data/elliottml/3TC_rest/templates/mask.T1_puberty_n34_dartel_MNI.nii
+	template=/data/elliottml/3TC_rest/templates/T1_puberty_n34_dartel_MNI.nii
+	stripTemplate=/data/elliottml/3TC_rest/templates/strip.T1_puberty_n34_dartel_MNI.nii
+	brainmask=/data/elliottml/3TC_rest/templates/mask.T1_puberty_n34_dartel_MNI.nii
 else
 	echo "no matching brain mask, please make another and input into preprocess_Uber.bash" 
 	exit
