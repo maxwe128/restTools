@@ -62,6 +62,12 @@ if [ $warpTemp == "n7.WSTDDUP.MNI" ];then
 	template=/data/elliottml/rest10M/templates/T1_combined_ws_td_dupn7template_MNI_1.5.nii
 	stripTemplate=/data/elliottml/rest10M/templates/brain_combined_ws_td_dupn7template_MNI_1.5.nii
 	brainmask=/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii
+elif [ $warpTemp == "n13.WSTDDUP.MNI" ];then ##Ants created template
+	echo "using WS TD DUP matched n13 template"
+	regMask=/data/elliottml/3TC_rest/templates/mask.1_WS_TD_DUP.n13matchedtemplate.nii.gz
+	template=/data/elliottml/3TC_rest/templates/WS_TD_DUP.n13matchedtemplate_MNI.nii.gz
+	stripTemplate=/data/elliottml/3TC_rest/templates/WS_TD_DUP.n13matchedtemplateStrip.nii.gz
+	brainmask=/data/elliottml/3TC_rest/templates/WS_TD_DUP.n13matchedtemplateBrainMask.nii.gz
 elif [ $warpTemp == "n240.SagVols.MNI" ];then
 	echo "using adult 240 sagVols templates"
 	regMask="/data/elliottml/COBRE/templates/mask.1_T1_dartel_strip_240sagvols_SOINrestVox.nii"
