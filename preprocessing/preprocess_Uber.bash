@@ -55,6 +55,14 @@ surfPrepDir="${wd}/${subjName}/surf.${surfID}"
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 templateDir="${wd}/${subjName}/template_${warpTemp}_files" #Idea is that all warped and warp related files will go here, this way multiple runs of preprocessing can be done without having to rewarp and multiple templates can be used for the same scans without having confusion
 
+echo "all new preprocessed files will be in the PREP dir: $prepDir and templateDir: $templateDir"
+
+#check to see if the script runs; avoids scary problem where files in scriptDir are overwrote by accident if there is a problem subject without data
+if [[ ! -f ${wd}/${subjName}/rest1.nii.gz ]];then
+	echo "no data for ${subjName}, make sure to create this directory ${wd}/${subjName} and place rest and anat files there"
+	exit 0
+fi
+
 if [ $warpTemp == "n7.WSTDDUP.MNI" ];then
 	#mask="/data/elliottml/rest10M/templates/brainmask_combined_ws_td_dupn7template_MNI_1.5.nii"
 	echo "Using WS Dup Kid templates"
@@ -103,7 +111,7 @@ cd $prepDir
 echo "here $pwd"
 if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 	if [[ ! -f  ${templateDir}/Wrest${numRest}.nii.gz ]];then
-		mkdir $templateDir
+		mkdir -p $templateDir
 		#####Bulk preprocessing#####
 		for restNum in $(seq 1 $numRest);do
 			echo "#################"; echo "copying raw data"; echo "#################"
@@ -125,7 +133,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 			if [[ $restNum -eq 1 ]];then
 				@Align_Centers -1Dmat_only -base tmp_rest1_0.nii.gz -cm -dset anat${restNum}.nii.gz -overwrite
 				mv anat${restNum}_shft.nii.gz anat${restNum}.nii.gz 
-				$scriptsDir/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz ${template} ${stripTemplate} ${brainmask}
+				${scriptsDir}/norm.func.spm12sa.csh tmp_rest${restNum}_0.nii.gz anat${restNum}.nii.gz ${template} ${stripTemplate} ${brainmask}
 			fi
 			WarpTimeSeriesImageMultiTransform 4 rest${restNum}_vr_${volID}.nii.gz W_rest${restNum}_vr_${volID}.nii.gz -R template_tmp_rest1_0.nii.gz Wanat1_Warp.nii.gz Wanat1_Affine.txt --use-NN
 			3drefit -space MNI -view tlrc W_rest${restNum}_vr_${volID}.nii.gz
@@ -179,6 +187,7 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 
 	##################start matrix of regressors for 3dTproject
 	if [[ ! -s ${prepDir}/meanFD.txt ]];then # check if file is empty (not not empty) in case txt file was made but mean was never found (in that case you want block rerun)
+		cd $prepDir
 		for restNum in $(seq 1 $numRest);do
 			numTR=$(cat ${templateDir}/rest1_vr_motion.1D | wc -l)
 			rm regressors${restNum}.1D
@@ -226,13 +235,14 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 				fi
 			fi
 		done
+		cd $prepDir
 		cat tmp_FD*.1D > FD_both.1D
-		awk '{s+=$1}END{print s/NR}' RS="\n" FD_both.1D >meanFD.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
-		if [ $tempFiles == F ];then
-			rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* seg* art_*
-		else
-			echo "keeping Files"
-		fi
+		awk '{s+=$1}END{print s/NR}' RS="\n" FD_both.1D > meanFD.txt #Mean of list of nums with awk, gets around biowulf Rscript issue
+		#if [ $tempFiles == F ];then
+		#	rm anat* Manat* strip* spm* Wanat[123456789]* *tmp* seg* art_*
+		#else
+		#	echo "keeping Files"
+		#fi
 		gzip -f *.nii
 	else
 		echo "#################";echo "skipping over regressor creation, already has been completed";echo "#################"
@@ -241,10 +251,11 @@ if [ ! -f ${prepDir}/concat_blurat${smooth}mm_bpss_${volID}.nii.gz ];then
 		if [[ ! -s ${prepDir}/meanFD_cens.txt ]];then # check if file is empty (not not empty)
 			gunzip ${templateDir}/rest*_vr.nii.gz
 			cp ${templateDir}/rest*_vr.nii ./ # this is for avoiding the weird Fatal signal 11 error
+			cd $prepDir
 			for restNum in $(seq 1 $numRest);do
 				echo ""; echo "############################ running ART censoring ######################"
 				###Setup cfg file
-				sed 's/rest1/rest'${restNum}'/g' ${scriptsDir}/rest${restNum}_std.cfg > rest${restNum}_std.cfg
+				sed 's/rest1/rest'${restNum}'/g' ${scriptsDir}/rest1_std.cfg > rest${restNum}_std.cfg
 				mm=$(echo $ART | cut -d "_" -f1)
 				sd=$(echo $ART | cut -d "_" -f2)
 				sed 's/motion_threshold: 1/motion_threshold: '${mm}'/g' rest${restNum}_std.cfg | sed 's/global_threshold: 3.0/global_threshold: '${sd}'/g' > rest${restNum}_new.cfg

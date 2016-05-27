@@ -9,10 +9,8 @@
 
 export OMP_NUM_THREADS=4
 nargs=$#
-echo $nargs
 if [[ $nargs -lt 7 ]];then
 	echo "
-	HERE
 	########Requirements###########
 	1)Ants needs to be downloaded and in your path
 	2)spm12sa needs to be downloaded and in your path
@@ -21,7 +19,7 @@ if [[ $nargs -lt 7 ]];then
 
 	preprocess_Uber.bash -w {working Directory} -l {subject list} -a {Art params} -c {CompCorr?} -m {motion params} -s {smoothing kernel} -n (numberRest} -f {surface?} -t {warpTemplate} -r {keep Temp files?}
 	
-	Example) run_preprocess_Uber.bash ../data_V1/ 10MInclusiveList F .25_3 F 24 10 2 T n18.WSTD.MNI F
+	Example) run_preprocess_Uber.bash -a .5_3 -w /data/elliottml/3TC_rest/prep/ -l /data/elliottml/3TC_rest/lists/allRestSubs_052516 -c T -m 6 -s 6 -n 2 -f T -t n7.WSTDDUP.MNI
 	##############Intro################
 	This script automates the running of preprocess_Uber.bash so that you can easily preprocess large groups of people with different preprocessing params.
 	It will make a swarm file, write it to the current directory and run the swarm file
@@ -34,7 +32,7 @@ if [[ $nargs -lt 7 ]];then
 		-n :numberRest-typically 1 or 2 but depending on the dataset you may have many runs of rest you want to concat together (Required)
 		-f :surface- T or F, do you want freesurfer and suma_make_Spec to be run on all subjects and rest data to be processed on surface as well as volume (Required)
 		-t :warpTemplate- options are hard coded into script based on input to warpTemp. Check the preprocess_Uber.bash script to see what template suites your needs. If none do feel free to add in a hardcoded template using regMask, template, striptemplate and brainmask structure. Look at script for examples (Required)
-		-r :-removeTempFiles- T or F, typically answer is F, this will save space. but if you want to debug or see how intermediate files are made than use T (Optional, Defaults to F)
+		-r :-keepTempFiles?- T or F, typically answer is F, this will save space. but if you want to debug or see how intermediate files are made than use T (Optional, Defaults to F)
 	####################################
 	"
 else
@@ -84,7 +82,7 @@ else
 	       		numRest=$OPTARG
 			echo "numRest=$numRest"
 	       		;;
-		  r) #remove Temp Files? tempFiles
+		  r) #keep Temp Files? tempFiles
 	       		tempFiles=$OPTARG
 			echo "tempFiles=$tempFiles"
 			if [[ ${tempFiles} != "T" && ${tempFiles} != "F" ]];then
@@ -119,9 +117,13 @@ else
 		#echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFile" > ${scriptsDir}/LOGS/preProcess_Uber.$i.$ID
 		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID.$warpTemp" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
+
+	###Dont think I need mallocFigher anymore
+	swarm -f $cwd/swarm.preprocess_Uber_$timeID -g 14 -t 4 --partition nimh,b1,norm --time 24:00:00 --logdir ${scriptsDir}/LOGS
+	
 	####Run Swarm#####
 	#now all swarm calls of preprocess_Uber are run through mallocFighter to avoid dumb mallocs
-	bash ${scriptsDir}/mallocFighter.bash ${cwd}/swarm.preprocess_Uber_$timeID
+	#bash ${scriptsDir}/mallocFighter.bash ${cwd}/swarm.preprocess_Uber_$timeID
 
 	#Nothing below that is commented should be needed but keeping for now in case malloc fighter busts
 

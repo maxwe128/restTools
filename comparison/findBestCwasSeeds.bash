@@ -10,7 +10,7 @@
 
 ###Args
 pMap=$1
-thresh=$2 #bonferonni corrected for WSTD is .999998
+thresh=$2 #bonferonni corrected for WSTD is .999998 for 4mm voxels
 clustSize=$3
 restGM=$4 #used to provide voxel size for seed mask that will be used in seed FC script
 seedSize=$5 #what size do you want your seeds to be
