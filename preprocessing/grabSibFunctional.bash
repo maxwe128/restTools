@@ -157,7 +157,7 @@ tarFile=$(echo $tarbPath | rev | cut -d "/" -f1 | rev)
 rsync apollo.nimh.nih.gov::${tarbPath} $wd/
 cd $wd
 #handle problem with naming changes, You will want to compare the task you think it is and what the seq says it is
-tar -zxf $tarFile --wildcards --no-anchored "*"
+tar -xf $tarFile --wildcards --no-anchored "*"
 scanNum=$(printf "%03d\n" $seq)
 scanDir=$(echo "mr_$scanNum")
 cd */*/*$scanNum

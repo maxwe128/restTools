@@ -32,6 +32,7 @@ if [[ $nargs -lt 7 ]];then
 		-n :numberRest-typically 1 or 2 but depending on the dataset you may have many runs of rest you want to concat together (Required)
 		-f :surface- T or F, do you want freesurfer and suma_make_Spec to be run on all subjects and rest data to be processed on surface as well as volume (Required)
 		-t :warpTemplate- options are hard coded into script based on input to warpTemp. Check the preprocess_Uber.bash script to see what template suites your needs. If none do feel free to add in a hardcoded template using regMask, template, striptemplate and brainmask structure. Look at script for examples (Required)
+		-e :extraRegressors- this is used if you want to regress out additional things from your data. Could be task design if you want to make pseudo-rest scans
 		-r :-keepTempFiles?- T or F, typically answer is F, this will save space. but if you want to debug or see how intermediate files are made than use T (Optional, Defaults to F)
 	####################################
 	"
@@ -46,9 +47,10 @@ else
 	numRest="" ##how many good rest scans do you have per subject
 	surf="" ##Either T of F, Do you want Freesurfer and @Suma_Make_Spec_FS run on subject. Will check to see if it has already been run in the correct place of subs Tree
 	warpTemp="" #this is the hardCoded name of the template files below, add another if the one you want isn't here
+	extraReg=""
 	tempFiles=F # do you want to keep extra files, default is False and will delete temp files
 	cwd=$(pwd)
-	  while getopts "a:c:f:l:m:n:r:s:t:w:" OPT;do
+	  while getopts "a:c:e:f:l:m:n:r:s:t:w:" OPT;do
 	      case $OPT in
 		  a) #ART parameters
 	       		ART=$OPTARG
@@ -61,6 +63,10 @@ else
 		   		echo " Error:  Argument -c (CompCorr) must be either T or F "
 		   	exit
 			fi
+	       		;;
+		  e) #extra regressors that you want added to the final 3dTproject command. This file needs to be the same number of rows as final concatenated scan TRs and will be added to allRegressors file as extra columns. This was originally created for adding task design to make pseudo-rest scans with task regressed out
+	       		extraReg=$OPTARG
+			echo "extraReg=$extraReg"
 	       		;;
 		  f) #Freesurfer + SUMA, do you want surface Run
 	       		surf=$OPTARG
@@ -114,8 +120,8 @@ else
 	mkdir -p ${scriptsDir}/LOGS
 	#####Make Swarm####
 	for i in $(less $subjList);do
-		#echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFile" > ${scriptsDir}/LOGS/preProcess_Uber.$i.$ID
-		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID.$warpTemp" >> $cwd/swarm.preprocess_Uber_$timeID
+		#echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $extraReg $tempFile" > ${scriptsDir}/LOGS/preProcess_Uber.$i.$ID
+		echo "cd $scriptsDir;bash ./preprocess_Uber.bash $wd $i $ART $CompCorr $motionReg $smooth $numRest $surf $warpTemp $extraReg $tempFiles &> ./LOGS/preProcess_Uber.$i.$ID.$warpTemp" >> $cwd/swarm.preprocess_Uber_$timeID
 	done
 
 	###Dont think I need mallocFigher anymore

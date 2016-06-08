@@ -11,14 +11,15 @@
 ###Args
 statMap=$1
 dataTable=$2 ### csv without titles in the form: /path/to/subData,groupLabel
-thresh=$3 #bonferonni corrected for WSTD is .999998
-clustSize=$4
-prefix=$5
+negThresh=$3 #often both thresh arguments will be the same just positive and negative. made this option so that I can just look at positive
+posThresh=$4 #bonferonni corrected for WSTD is .999998
+clustSize=$5
+prefix=$6
 
 scriptsDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #cluster the CWAS 1-pvals dataset based on thresh
-3dclust -quiet -1Dformat -nosum -1dindex 0 -1tindex 0 -2thresh -$thresh $thresh -dxyz=1 1.01 $clustSize $statMap | tr -s ' ' | cut -d " " -f15-17 > $prefix.tmp.peakTable
+3dclust -quiet -1Dformat -nosum -1dindex 0 -1tindex 0 -2thresh -$negThresh $posThresh -dxyz=1 1.01 $clustSize $statMap | tr -s ' ' | cut -d " " -f15-17 > $prefix.tmp.peakTable
 numClust=$(cat $prefix.tmp.peakTable | wc -l)
 
 if [[ $numClust -eq 0 ]];then
@@ -30,7 +31,7 @@ else
 	echo "group Labels to be Plotted:"
 	cat $prefix.tmp.groupLabels
 fi
-3dclust -quiet -1Dformat -nosum -1dindex 0 -1tindex 0 -2thresh -$thresh $thresh -dxyz=1 -savemask ${prefix}.tmp.ClustMapFull.nii 1.01 $clustSize $statMap
+3dclust -quiet -1Dformat -nosum -1dindex 0 -1tindex 0 -2thresh -$negThresh $posThresh -dxyz=1 -savemask ${prefix}.tmp.ClustMapFull.nii 1.01 $clustSize $statMap
 
 3dcalc -a ${prefix}.tmp.ClustMapFull.nii -b $statMap -expr '(a*b)/a' -prefix ${prefix}.ClustMapFull.nii #get clusters with all values intact
 
