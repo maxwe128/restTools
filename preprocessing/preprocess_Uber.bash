@@ -14,9 +14,9 @@ if [[ $# -lt 7 ]];then
 	3)Freesurfer needs to be downloaded and in your path
 	######Call structure############
 
-	preprocess_Uber.bash {working Directory} {subject list} {Art params} {CompCorr?} {motion params} {smoothing kernel} (numberRest} {surface?} {warpTemplate} {keep Temp files?}
+	preprocess_Uber.bash -w {working Directory} -l {subject list} -a {Art params} -c {CompCorr?} -m {motion params} -s {smoothing kernel} -n (numberRest} -f {surface?} -t {warpTemplate} -r {keep Temp files?}
 	
-	Example) run_preprocess_Uber.bash ../data_V1/ 10MInclusiveList F .25_3 F 24 10 2 T n18.WSTD.MNI F
+	Example) run_preprocess_Uber.bash -a .5_3 -w /data/elliottml/3TC_rest/prep/ -l /data/elliottml/3TC_rest/lists/allRestSubs_052516 -c T -m 6 -s 6 -n 2 -f T -t n7.WSTDDUP.MNI
 	##############Intro################
 	This script automates the running of preprocess_Uber.bash so that you can easily preprocess large groups of people with different preprocessing params.
 	It will make a swarm file, write it to the current directory and run the swarm file
