@@ -17,5 +17,5 @@ prefix=$5
 	-stim_file 1 tmp.$prefix.maskData.1D -stim_label 1 maskData \
 	-tout -rout -bucket $outWD/tmp.$prefix.maskData.decon.nii
 3dcalc -a tmp.$prefix.maskData.decon.nii'[4]' -b tmp.$prefix.maskData.decon.nii'[2]' -expr 'ispositive(b)*sqrt(a)-isnegative(b)*sqrt(a)' -prefix $outWD/tmp.$prefix.maskData.R.nii
-3dcalc -a tmp.$prefix.maskData.R.nii -expr 'log((1+a)/(1-a))/2' -prefix $outWD/$prefix.maskConnData.Z.nii.gz
+3dcalc -a tmp.$prefix.maskData.R.nii -expr 'log((1+a)/(1-a))/2' -prefix $outWD/$prefix.Z.nii.gz
 rm tmp.${prefix}*
